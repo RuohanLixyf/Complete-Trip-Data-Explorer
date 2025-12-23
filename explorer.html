@@ -9,25 +9,30 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 </head>
+
 <body>
-  <header>
-    <h2>Complete Trip Explorer</h2>
-    <div class="controls">
-      <select id="tripSelector"></select>
-    </div>
-  </header>
 
-  <div id="layout">
-    <div id="sidebar">
-      <h3>Trip Details</h3>
-      <div id="tripInfo">Select a trip</div>
-    </div>
+<header>
+  <h2>Complete Trip Explorer</h2>
+  <div class="controls">
+    <select id="tripSelector"></select>
+  </div>
+</header>
 
-    <div id="map"></div>
+<div id="layout">
+  <div id="sidebar">
+    <div class="info-card">
+      <h3>Trip Information</h3>
+      <div id="tripInfo">Select a trip to view details.</div>
+    </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="assets/js/data.js"></script>
-  <script src="assets/js/map.js"></script>
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/map.js"></script>
+
 </body>
 </html>
