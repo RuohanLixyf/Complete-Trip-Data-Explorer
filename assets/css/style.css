@@ -5,6 +5,7 @@
   --bg-soft:#f6f8ff;
   --text:#333;
   --muted:#555;
+  --topbar-h: 56px;
 }
 /* ===== Global ===== */
 body{
@@ -44,14 +45,15 @@ body{
 
 /* ===== Top Bar ===== */
 .top-bar {
+  height: var(--topbar-h);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  padding: 12px 22px;
+  padding: 0 18px;
   background:var(--nova-deep);
   color:#fff;
 }
-.lab-wordmark{ font-size:18px; font-weight:800; }
+.lab-wordmark{ font-size:16px; font-weight:800; }
 .lab-wordmark .nova{ color:#fff; }
 .lab-wordmark .mobility{ color:var(--nova-sky); }
 
@@ -60,7 +62,7 @@ body{
 .sub-title{ font-size:12.5px; color:#cfe3ff; font-weight:500; }
 
 .villanova-logo{
-  height:44px;
+  height:40px;
   padding: 2px;
   opacity:.95;
   border-radius:6px;
