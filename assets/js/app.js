@@ -12,6 +12,33 @@
     attribution: "© OpenStreetMap contributors"
   }).addTo(map);
 
+  function normalizeStopMode(mode) {
+    if (!mode) return null;
+
+    const m = mode.toLowerCase();
+
+    if (m.includes("bus") || m.includes("micro")) return "bus";
+    if (m.includes("trax") || m.includes("frontrunner")) return "rail";
+
+    return null;
+  }
+  function normalizeRouteMode(routeType) {
+    if (!routeType) return null;
+
+    const railLines = [
+      "blue line",
+      "red line",
+      "green line",
+      "s line",
+      "frontrunner"
+    ];
+
+    const t = routeType.toLowerCase();
+
+    if (railLines.some(r => t.includes(r))) return "rail";
+    return "bus";
+  }
+
   /* =========================
      Core layers (Explorer / TDI)
   ========================= */
@@ -44,7 +71,9 @@
 
     L.geoJSON(data, {
       pointToLayer: (f, latlng) => {
-        const mode = f.properties.mode;
+        const mode = normalizeStopMode(f.properties.mode);
+        if (!mode) return null;
+
         const layer = L.circleMarker(latlng, {
           radius: 4,
           color: mode === "bus" ? "#2563eb" : "#7c3aed",
@@ -52,10 +81,13 @@
           fillOpacity: 0.9
         });
 
-        layer.bindPopup(f.properties.stop_name || "Stop");
+        layer.bindPopup(
+          `${f.properties.stop_name}<br><small>${f.properties.mode}</small>`
+        );
 
         if (mode === "bus") layer.addTo(facilityLayers.bus_stop);
         if (mode === "rail") layer.addTo(facilityLayers.rail_stop);
+
 
         return layer;
       }
@@ -78,8 +110,16 @@
       onEachFeature: (f, layer) => {
         layer.bindPopup(f.properties.route_name || "Route");
 
-        if (f.properties.mode === "bus") layer.addTo(facilityLayers.bus_route);
-        if (f.properties.mode === "rail") layer.addTo(facilityLayers.rail_route);
+        const mode = normalizeRouteMode(f.properties.routetype);
+        if (!mode) return;
+
+        layer.bindPopup(
+          `${f.properties.route_name}<br><small>${f.properties.routetype}</small>`
+        );
+
+        if (mode === "bus") layer.addTo(facilityLayers.bus_route);
+        if (mode === "rail") layer.addTo(facilityLayers.rail_route);
+
       }
     });
   }
