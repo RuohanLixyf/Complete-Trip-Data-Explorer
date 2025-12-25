@@ -76,17 +76,61 @@ body{
 #sidebar {
   width: 260px;
   min-width: 240px;
-  max-width: 280px;
-  padding: 14px;
-  flex-shrink: 0;   /* 明确语义 */
-  background: #ffffff;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid #e5e7eb;
+}
+.sidebar-top {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef1f7;
+  background: #fafbff;
+}
+.sidebar-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.view-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 一行两个 */
+  gap: 6px;
+}
+
+.view-pill {
+  font-size: 12px;
+  padding: 6px 6px;
+  border-radius: 8px;
+
+  background: #f3f6ff;
+  border: 1px solid #d6def5;
+  color: #0A2A66;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-pill.active {
+  background: #0A2A66;
+  color: #fff;
+  border-color: #0A2A66;
 }
 
 .lens-selector {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.sidebar-bottom {
+  padding: 14px 12px;
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #0A2A66;
 }
 
 .lens-btn {

@@ -49,98 +49,45 @@
     <!-- Sidebar -->
     <aside id="sidebar">
 
-      <!-- ================= COMPLETE TRIP ================= -->
-      <section class="sidebar-panel active" data-view="complete">
-
-        <!-- Structural lens selector -->
-        <div class="card">
-          <h4>View</h4>
-          <div class="lens-selector">
-            <button class="lens-btn active" data-lens="sample">Complete Trip Sample</button>
-            <button class="lens-btn" data-lens="od">OD Structure</button>
-            <button class="lens-btn" data-lens="access">Access / Egress</button>
-            <button class="lens-btn" data-lens="network">Road Network Usage</button>
-            <button class="lens-btn" data-lens="speed">Speed</button>
-          </div>
+      <!-- ===== TOP: View Selector ===== -->
+      <div class="sidebar-top">
+        <div class="view-grid">
+          <button class="view-pill active">Complete Trip</button>
+          <button class="view-pill">OD</button>
+          <button class="view-pill">Access</button>
+          <button class="view-pill">Network</button>
+          <button class="view-pill">Speed</button>
         </div>
+      </div>
 
-        <!-- Filters (content depends on lens) -->
-        <div class="card">
-          <h4>Filters</h4>
+      <!-- ===== BOTTOM: Filters ===== -->
+      <div class="sidebar-bottom">
 
-          <div class="form-row">
-            <label>Month</label>
-            <select></select>
-          </div>
+        <h4 class="sidebar-title">Filters</h4>
 
-          <div class="form-row">
-            <label>Mode</label>
-            <select>
-              <option>All</option>
-              <option>Transit</option>
-              <option>Auto</option>
-              <option>Walk</option>
-            </select>
-          </div>
-
-          <label class="checkbox">
-            <input type="checkbox" />
-            Linked trips only
-          </label>
-        </div>
-
-        <!-- Explanation (optional but very good for TRB) -->
-        <div class="card subtle">
-          <div class="small">
-            Complete Trip represents a full door-to-door multimodal journey,
-            including access, transfers, and egress, reconstructed on real
-            transportation networks.
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ================= APPLICATIONS ================= -->
-      <section class="sidebar-panel" data-view="applications">
-
-        <div class="card">
-          <h4>Application</h4>
+        <div class="form-row">
+          <label>Month</label>
           <select>
-            <option>Transit Desert (TDI)</option>
-            <option disabled>Tourism (coming soon)</option>
+            <option>All</option>
+            <option>2020-01</option>
+            <option>2020-02</option>
           </select>
         </div>
 
-        <div class="card">
-          <h4>Temporal Scale</h4>
-          <select>
-            <option>Monthly</option>
-            <option>Annual</option>
-          </select>
-        </div>
+        <div class="form-row">
+          <label>Mode</label>
 
-        <div class="card">
-          <h4>Layers</h4>
-          <label class="checkbox">
-            <input type="checkbox" checked />
-            Show TDI choropleth
-          </label>
-          <label class="checkbox">
-            <input type="checkbox" />
-            Show access mismatch arrows
-          </label>
-        </div>
-
-        <div class="card subtle">
-          <div class="small">
-            Transit Desert diagnostics are derived from complete trip representations,
-            revealing behavioral mismatches between demand and transit supply.
+          <div class="mode-list">
+            <label><input type="checkbox" checked> Car</label>
+            <label><input type="checkbox" checked> Bus</label>
+            <label><input type="checkbox" checked> Rail</label>
+            <label><input type="checkbox" checked> Walk / Bike</label>
           </div>
         </div>
 
-      </section>
-
+      </div>
     </aside>
+
 
 
     <!-- Map -->
