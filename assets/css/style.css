@@ -455,3 +455,58 @@ select:focus{
   color: #fff;
   border-color: #0A2A66;
 }
+
+.recenter-btn {
+  width: 32px;
+  height: 32px;
+
+  background: #ffffff;
+  border: 1px solid #d0d7e6;
+  border-radius: 6px;
+
+  font-size: 16px;
+  font-weight: 700;
+  color: #0A2A66;
+
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.recenter-btn:hover {
+  background: #f3f6ff;
+}
+/* ===== Recenter (Crosshair) Control ===== */
+.recenter-btn {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+
+  background: #ffffff;
+  color: #0A2A66;
+
+  border: 1px solid #d0d7e6;
+  border-radius: 8px;
+
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+
+  padding: 0;
+}
+
+/* Hover */
+.recenter-btn:hover {
+  background: #f3f6ff;
+}
+
+/* Active */
+.recenter-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
