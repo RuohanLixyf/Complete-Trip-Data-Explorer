@@ -373,7 +373,6 @@ select:focus{
 
 /* ===== View Selector ===== */
 .view-selector {
-  position: sticky;
   top: var(--topbar-h, 64px);
   z-index: 900;
 
