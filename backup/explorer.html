@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Complete Trip Data Explorer</title>
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+</head>
+
+<body>
+  <!-- Top Bar (Villanova blue + NovaMobility wordmark + Villanova V) -->
+  <header class="top-bar">
+
+    <div class="left-group">
+      <div class="lab-wordmark">
+        <span class="nova">Nova</span><span class="mobility">Mobility</span> Lab
+      </div>
+    </div>
+
+    <div class="center-group">
+      <div class="main-title">Complete Trip Data Explorer</div>
+    </div>
+
+    <div class="right-group">
+      <img
+        src="img/Villanova_V_logo.jpg"
+        alt="Villanova University"
+        class="villanova-logo"
+      >
+    </div>
+</header>
+
+  <!-- View Selector -->
+  <div class="view-selector">
+    <button class="view-btn active" data-view="complete">
+      Complete Trip
+    </button>
+    <button class="view-btn" data-view="applications">
+      Applications
+    </button>
+  </div>
+  
+  <div id="layout">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+
+      <!-- ===== TOP: View Selector ===== -->
+      <div class="sidebar-top">
+        <div class="view-grid">
+          <button class="view-pill active">Samples</button>
+          <button class="view-pill">OD</button>
+          <button class="view-pill">Access</button>
+          <button class="view-pill">Egress</button>
+          <button class="view-pill">Network</button>
+          <button class="view-pill">Speed</button>
+        </div>
+      </div>
+
+      <!-- ===== BOTTOM: Filters ===== -->
+      <div class="sidebar-bottom">
+
+        <h4 class="sidebar-title">Filters</h4>
+
+        <div class="form-row">
+          <label>Month</label>
+          <select>
+            <option>All</option>
+            <option>2020-01</option>
+            <option>2020-02</option>
+            <option>2020-03</option>
+            <option>2020-04</option>
+            <option>2020-05</option>
+            <option>2020-06</option>
+            <option>2020-07</option>
+            <option>2020-08</option>
+            <option>2020-09</option>
+            <option>2020-10</option>
+            <option>2020-11</option>
+            <option>2020-12</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>Mode</label>
+
+          <div class="mode-list">
+            <label class="check-item">
+              <input type="checkbox" checked>
+              <span>Car</span>
+            </label>
+
+            <label class="check-item">
+              <input type="checkbox" checked>
+              <span>Bus</span>
+            </label>
+
+            <label class="check-item">
+              <input type="checkbox" checked>
+              <span>Rail</span>
+            </label>
+
+            <label class="check-item">
+              <input type="checkbox" checked>
+              <span>Walk / Bike</span>
+            </label>
+          </div>
+          
+          <label>Facilities</label>
+          <div class="facility-list">
+            <label class="check-item">
+              <input type="checkbox" data-layer="bus_stop" checked>
+              Bus Stop
+            </label>
+            <label class="check-item">
+              <input type="checkbox" data-layer="bus_route" checked>
+              Bus Route
+            </label>
+            <label class="check-item">
+              <input type="checkbox" data-layer="rail_stop" checked>
+              Rail Stop
+            </label>
+            <label class="check-item">
+              <input type="checkbox" data-layer="rail_route" checked>
+              Rail Route
+            </label>
+          </div>
+
+      </div>
+      
+      <!-- Basemap toggle (bottom) -->
+      <div class="basemap-toggle">
+        <span class="label">Map</span>
+        <button class="bm-btn active" data-basemap="light">Light</button>
+        <button class="bm-btn" data-basemap="dark">Dark</button>
+      </div>
+
+    </aside>
+
+
+
+    <!-- Map -->
+    <main id="map-wrap">
+      <div id="map"></div>
+
+      <div id="mapStatus" class="map-status">
+        Ready · Sample data loaded
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Sample data + app -->
+  <script src="assets/js/data.sample.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
+ 
