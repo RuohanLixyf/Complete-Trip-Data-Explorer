@@ -20,8 +20,8 @@
   };
 
   // 默认底图
-  baseMaps.light.addTo(map);
   let currentBasemap = "light";
+  baseMaps[currentBasemap].addTo(map);
 
   function switchBasemap(name) {
     if (name === currentBasemap) return;
@@ -246,8 +246,15 @@
     const layer = facilityLayers[cb.dataset.layer];
     if (!layer) return;
 
+    // 🔹 初始同步
     if (cb.checked) map.addLayer(layer);
     else map.removeLayer(layer);
+
+    // 🔥 监听变化
+    cb.addEventListener("change", () => {
+      if (cb.checked) map.addLayer(layer);
+      else map.removeLayer(layer);
+    });
   });
 
   /* =========================
