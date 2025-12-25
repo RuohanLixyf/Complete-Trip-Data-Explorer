@@ -171,3 +171,8 @@ header h2 {
 #map {
   flex: 1;
 }
+
+.villanova-logo {
+  height: 34px;
+  opacity: 0.95;
+}
