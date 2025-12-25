@@ -1,4 +1,4 @@
-/* global L, SAMPLE */
+/* global L */
 
 (function () {
 
@@ -7,6 +7,13 @@
   ========================= */
   const map = L.map("map", { zoomControl: true })
     .setView([40.758, -111.89], 12);
+
+  // 🔥 清除任何残留 TileLayer（解决 dark / light 无效）
+  map.eachLayer(layer => {
+    if (layer instanceof L.TileLayer) {
+      map.removeLayer(layer);
+    }
+  });
 
   const baseMaps = {
     light: L.tileLayer(
@@ -19,7 +26,6 @@
     )
   };
 
-  // 默认底图
   let currentBasemap = "light";
   baseMaps[currentBasemap].addTo(map);
 
@@ -64,17 +70,15 @@
      Core layers
   ========================= */
   const layers = {
-    od: L.layerGroup().addTo(map),
     tripRoute: L.layerGroup().addTo(map),
-    accessEgress: L.layerGroup().addTo(map),
-    tdi: L.geoJSON(null).addTo(map)
+    accessEgress: L.layerGroup().addTo(map)
   };
 
   const facilityLayers = {
-    bus_stop: L.layerGroup().addTo(map),
-    rail_stop: L.layerGroup().addTo(map),
-    bus_route: L.layerGroup().addTo(map),
-    rail_route: L.layerGroup().addTo(map)
+    bus_stop: L.layerGroup(),
+    rail_stop: L.layerGroup(),
+    bus_route: L.layerGroup(),
+    rail_route: L.layerGroup()
   };
 
   /* =========================
@@ -92,21 +96,19 @@
         const mode = normalizeStopMode(f.properties.mode);
         if (!mode) return null;
 
-        const layer = L.circleMarker(latlng, {
+        const marker = L.circleMarker(latlng, {
           radius: 4,
           color: mode === "bus" ? "#2563eb" : "#7c3aed",
           weight: 1,
           fillOpacity: 0.9
-        });
-
-        layer.bindPopup(
+        }).bindPopup(
           `${f.properties.stop_name}<br><small>${f.properties.mode}</small>`
         );
 
-        if (mode === "bus") layer.addTo(facilityLayers.bus_stop);
-        if (mode === "rail") layer.addTo(facilityLayers.rail_stop);
+        if (mode === "bus") marker.addTo(facilityLayers.bus_stop);
+        if (mode === "rail") marker.addTo(facilityLayers.rail_stop);
 
-        return layer;
+        return marker;
       }
     });
   }
@@ -151,62 +153,11 @@
     SAMPLE = json.samples || [];
   }
 
-  function renderSampleList() {
-    const list = document.getElementById("sampleList");
-    if (!list) return;
-
-    list.innerHTML = "";
-
-    if (!SAMPLE.length) {
-      list.innerHTML = `<div class="small">No samples loaded.</div>`;
-      return;
-    }
-
-    SAMPLE.forEach((s, i) => {
-      const el = document.createElement("div");
-      el.className = "sample-item";
-      el.textContent = `Sample ${i + 1}: ${s.trip_id}`;
-      el.addEventListener("click", () => {
-        document
-          .querySelectorAll(".sample-item")
-          .forEach(x => x.classList.remove("active"));
-        el.classList.add("active");
-      
-        drawSampleOnMap(s);
-      });
-      list.appendChild(el);
-    });
-  }
-
-  function attachViewPillEvents() {
-    const pills = document.querySelectorAll(".view-pill");
-    const samplePanel = document.getElementById("samples-panel");
-
-    if (!samplePanel) return;
-
-    pills.forEach(pill => {
-      pill.addEventListener("click", () => {
-        pills.forEach(p => p.classList.remove("active"));
-        pill.classList.add("active");
-
-        const view = pill.dataset.view;
-
-        if (view === "samples") {
-          samplePanel.style.display = "block";
-          renderSampleList();
-        } else {
-          samplePanel.style.display = "none";
-        }
-      });
-    });
-  }
   function drawSampleOnMap(sample) {
-    // 清空旧图层
     layers.tripRoute.clearLayers();
     layers.accessEgress.clearLayers();
-  
-    // 1️⃣ 画轨迹（LineString）
-    if (sample.geometry && sample.geometry.coordinates) {
+
+    if (sample.geometry?.coordinates) {
       const coords = sample.geometry.coordinates.map(c => [c[1], c[0]]);
       const line = L.polyline(coords, {
         color: "#0A2A66",
@@ -216,8 +167,7 @@
       layers.tripRoute.addLayer(line);
       map.fitBounds(line.getBounds(), { padding: [30, 30] });
     }
-  
-    // 2️⃣ 起点
+
     if (sample.origin) {
       layers.accessEgress.addLayer(
         L.circleMarker(
@@ -226,8 +176,7 @@
         ).bindTooltip("Origin")
       );
     }
-  
-    // 3️⃣ 终点
+
     if (sample.destination) {
       layers.accessEgress.addLayer(
         L.circleMarker(
@@ -237,25 +186,43 @@
       );
     }
   }
-  /* =========================
-     Checkbox → layer toggle
-  ========================= */
-  document
-  .querySelectorAll('input[type="checkbox"][data-layer]')
-  .forEach(cb => {
-    const layer = facilityLayers[cb.dataset.layer];
-    if (!layer) return;
 
-    // 🔹 初始同步
-    if (cb.checked) map.addLayer(layer);
-    else map.removeLayer(layer);
+  function renderSampleList() {
+    const list = document.getElementById("sampleList");
+    list.innerHTML = "";
 
-    // 🔥 监听变化
-    cb.addEventListener("change", () => {
-      if (cb.checked) map.addLayer(layer);
-      else map.removeLayer(layer);
+    SAMPLE.forEach((s, i) => {
+      const el = document.createElement("div");
+      el.className = "sample-item";
+      el.textContent = `Sample ${i + 1}: ${s.trip_id}`;
+      el.onclick = () => {
+        document.querySelectorAll(".sample-item")
+          .forEach(x => x.classList.remove("active"));
+        el.classList.add("active");
+        drawSampleOnMap(s);
+      };
+      list.appendChild(el);
     });
-  });
+  }
+
+  /* =========================
+     Facility checkbox binding（关键修复）
+  ========================= */
+  function bindFacilityCheckboxes() {
+    document
+      .querySelectorAll('input[type="checkbox"][data-layer]')
+      .forEach(cb => {
+        const layer = facilityLayers[cb.dataset.layer];
+        if (!layer) return;
+
+        if (cb.checked) map.addLayer(layer);
+
+        cb.addEventListener("change", () => {
+          if (cb.checked) map.addLayer(layer);
+          else map.removeLayer(layer);
+        });
+      });
+  }
 
   /* =========================
      Init
@@ -265,16 +232,15 @@
     await loadStops();
     await loadRoutes();
 
+    bindFacilityCheckboxes();        // 🔥 必须在 load 后
+    renderSampleList();
 
-    attachViewPillEvents();
-    renderSampleList();   // ✅ 默认显示一次
     if (SAMPLE.length > 0) {
       drawSampleOnMap(SAMPLE[0]);
     }
+
     document.querySelectorAll(".bm-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        switchBasemap(btn.dataset.basemap);
-      });
+      btn.onclick = () => switchBasemap(btn.dataset.basemap);
     });
   }
 
