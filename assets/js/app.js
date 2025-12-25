@@ -8,10 +8,6 @@
   const map = L.map("map", { zoomControl: true })
     .setView([40.758, -111.89], 12);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap contributors"
-  }).addTo(map);
-
   const baseMaps = {
     light: L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
@@ -245,16 +241,14 @@
      Checkbox → layer toggle
   ========================= */
   document
-    .querySelectorAll('input[type="checkbox"][data-layer]')
-    .forEach(cb => {
-      cb.addEventListener("change", e => {
-        const layer = facilityLayers[e.target.dataset.layer];
-        if (!layer) return;
+  .querySelectorAll('input[type="checkbox"][data-layer]')
+  .forEach(cb => {
+    const layer = facilityLayers[cb.dataset.layer];
+    if (!layer) return;
 
-        if (e.target.checked) map.addLayer(layer);
-        else map.removeLayer(layer);
-      });
-    });
+    if (cb.checked) map.addLayer(layer);
+    else map.removeLayer(layer);
+  });
 
   /* =========================
      Init
