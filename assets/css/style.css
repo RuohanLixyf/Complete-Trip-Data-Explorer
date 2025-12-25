@@ -1,190 +1,291 @@
-/* ===== Global ===== */
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-  background: #ffffff;
-  color: #333;
-  line-height: 1.55;
+:root{
+  --nova-deep:#0A2A66;
+  --nova-sky:#32B5FF;
+  --support:#1E3A8A;
+  --bg-soft:#f6f8ff;
+  --text:#333;
+  --muted:#555;
 }
+/* ===== Global ===== */
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
+  background:#fff;
+  color:var(--text);
+  line-height:1.55;
+}
+/* Landing */
+.landing-container{
+  max-width:860px;
+  margin:80px auto;
+  text-align:center;
+  padding:0 20px;
+}
+.lab-title{ font-size:42px; margin:0 0 6px 0; }
+.lab-title .nova{ color:var(--nova-deep); font-weight:800; }
+.lab-title .mobility{ color:var(--nova-sky); font-weight:800; }
+.project-title{ font-size:26px; margin:10px 0 0 0; color:var(--nova-deep); font-weight:800; }
+.subtitle{ font-size:18px; color:#444; margin-top:12px; }
+.divider{ margin:40px auto; width:80%; }
+.description{ font-size:16px; max-width:720px; margin:0 auto 35px auto; }
+.primary-btn{
+  display:inline-block;
+  padding:14px 34px;
+  background:var(--nova-deep);
+  color:#fff;
+  font-size:18px;
+  border-radius:10px;
+  text-decoration:none;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  font-weight:800;
+}
+.primary-btn:hover{ background:#133b8a; }
+.landing-footer{ margin-top:60px; font-size:14px; color:var(--muted); }
+
 /* ===== Top Bar ===== */
 .top-bar {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  padding: 12px 24px;
-  background: #0A2A66;   /* Villanova classic blue */
-  color: white;
+  padding: 12px 22px;
+  background:var(--nova-deep);
+  color:#fff;
+}
+.lab-wordmark{ font-size:18px; font-weight:800; }
+.lab-wordmark .nova{ color:#fff; }
+.lab-wordmark .mobility{ color:var(--nova-sky); }
+
+.center-group{ text-align:center; }
+.main-title{ font-size:20px; font-weight:800; }
+.sub-title{ font-size:12.5px; color:#cfe3ff; font-weight:500; }
+
+.villanova-logo{
+  height:34px;
+  opacity:.95;
+  border-radius:4px;
+}
+/* ===== Layout ===== */
+#layout{
+  display:flex;
+  height:calc(100vh - 64px);
 }
 
-/* Left: Lab wordmark */
-.lab-wordmark {
-  font-size: 18px;
-  font-weight: 600;
+#sidebar{
+  width:360px;
+  border-right:1px solid var(--border);
+  padding:14px;
+  overflow:auto;
+  background:#fff;
 }
 
-.lab-wordmark .nova {
-  color: #ffffff;
+#map-wrap{
+  flex:1;
+  position:relative;
+  background:#fff;
 }
 
-.lab-wordmark .mobility {
-  color: #32B5FF;   /* NovaMobility light blue */
+#map{
+  width:100%;
+  height:100%;
 }
 
-/* Center: titles */
-.center-group {
-  text-align: center;
+/* ===== Cards / UI ===== */
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 12px;
+  margin-bottom:12px;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
 }
 
-.main-title {
-  font-size: 20px;
-  font-weight: 600;
+.card h3{
+  margin:0 0 8px 0;
+  font-size:16px;
+  color:var(--villanova-blue);
+  font-weight:700;
 }
 
-.sub-title {
-  font-size: 13px;
-  color: #cfe3ff;
+.small{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:10px;
 }
 
-/* Right: Villanova */
-.villanova-mark {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 1px;
+.hint{
+  margin-top:10px;
+  font-size:12px;
+  color:#555;
+  background:var(--bg-soft);
+  border-left:4px solid var(--support-blue);
+  padding:8px 10px;
+  border-radius:8px;
 }
 
-/* ===== Landing Page ===== */
-.landing-container {
-  max-width: 860px;
-  margin: 80px auto;
-  text-align: center;
-  padding: 0 20px;
+.form-row{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:10px;
+}
+.form-row.inline{
+  flex-direction:row;
+  align-items:center;
+}
+label{
+  font-size:13px;
+  color:#222;
+  font-weight:700;
+}
+select{
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:13px;
+  outline:none;
+}
+select:focus{
+  border-color:var(--support-blue);
 }
 
-.lab-title {
-  font-size: 42px;
-  margin-bottom: 5px;
+.checkbox{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  font-size:13px;
+  font-weight:700;
+  color:#222;
+  margin:8px 0;
+}
+.checkbox input{
+  transform:translateY(1px);
 }
 
-.lab-title .nova {
-  color: #0A2A66;
-  font-weight: 700;
+/* ===== Tabs ===== */
+.tab-bar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.tab-btn{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:13px;
+  font-weight:800;
+  color:var(--villanova-blue);
+  cursor:pointer;
+}
+.tab-btn.active{
+  background:var(--bg-soft);
+  border-color:var(--support-blue);
+}
+.tab-panel{ display:none; }
+.tab-panel.active{ display:block; }
+
+/* ===== Lists / tables ===== */
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
-.lab-title .mobility {
-  color: #32B5FF;
-  font-weight: 700;
+.list-item{
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  cursor:pointer;
+  background:#fff;
+}
+.list-item:hover{
+  border-color:var(--support-blue);
+  background:var(--bg-soft);
+}
+.list-item .title{
+  font-weight:800;
+  color:var(--villanova-blue);
+  font-size:13px;
+}
+.list-item .meta{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
 }
 
-.project-title {
-  font-size: 26px;
-  margin-top: 10px;
-  color: #0A2A66;
+.kv{
+  font-size:13px;
+  color:#222;
 }
-
-.subtitle {
-  font-size: 18px;
-  color: #444;
-  margin-top: 12px;
+.kv .row{
+  display:flex;
+  justify-content:space-between;
+  padding:4px 0;
+  border-bottom:1px dashed #eee;
 }
+.kv .row:last-child{ border-bottom:none; }
+.kv .k{ font-weight:800; color:#222; }
+.kv .v{ color:#222; }
 
-.divider {
-  margin: 40px auto;
-  width: 80%;
+.table{
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:10px;
 }
-
-.description {
-  font-size: 16px;
-  max-width: 720px;
-  margin: 0 auto 35px auto;
+.table .trow{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding:8px 10px;
+  border-bottom:1px solid #eee;
+  font-size:13px;
 }
-
-.primary-btn {
-  display: inline-block;
-  padding: 14px 34px;
-  background: #0A2A66;
-  color: white;
-  font-size: 18px;
-  border-radius: 8px;
-  text-decoration: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+.table .trow.head{
+  background:var(--bg-soft);
+  font-weight:900;
+  color:var(--villanova-blue);
 }
+.table .trow:last-child{ border-bottom:none; }
 
-.primary-btn:hover {
-  background: #133b8a;
+/* ===== TDI legend ===== */
+.legend{
+  margin-top:10px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
 }
-
-.landing-footer {
-  margin-top: 60px;
-  font-size: 14px;
-  color: #555;
+.legend-title{
+  font-size:13px;
+  font-weight:900;
+  color:var(--villanova-blue);
+  margin-bottom:8px;
 }
-
-/* ===== Explorer Page ===== */
-header {
-  padding: 12px 20px;
-  background: #f6f8ff;
-  border-bottom: 3px solid #1E3A8A;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.legend-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  font-size:12px;
+  margin:4px 0;
 }
-
-header h2 {
-  margin: 0;
-  color: #0A2A66;
+.swatch{
+  width:16px; height:10px;
+  border-radius:3px;
+  border:1px solid rgba(0,0,0,.12);
 }
+.s1{ background: rgba(50,181,255,.25); }
+.s2{ background: rgba(30,58,138,.25); }
+.s3{ background: rgba(10,42,102,.55); }
 
-.controls select {
-  padding: 6px 10px;
-  font-size: 14px;
-}
-
-#layout {
-  display: flex;
-  height: calc(100vh - 64px);
-}
-
-/* Left Panel */
-#sidebar {
-  width: 320px;
-  padding: 16px;
-  background: #ffffff;
-  border-right: 1px solid #ddd;
-  overflow-y: auto;
-}
-
-.info-card {
-  background: #f6f8ff;
-  border-left: 5px solid #1E3A8A;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  border-radius: 6px;
-}
-
-.info-card h3 {
-  margin-top: 0;
-  color: #0A2A66;
-  font-size: 18px;
-}
-
-/* Map */
-#map {
-  flex: 1;
-}
-
-.villanova-logo {
-  height: 34px;
-  opacity: 0.95;
-  border-radius: 4px;
-  padding: 2px;
-}
-
-.lab-wordmark {
-  font-size: 18px;
-  font-weight: 700;   /* 加粗 */
-}
-
-.main-title {
-  font-size: 20px;
-  font-weight: 700;   /* 加粗 */
+/* ===== Map status ===== */
+.map-status{
+  position:absolute;
+  left:14px;
+  bottom:14px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:12px;
+  color:#222;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
