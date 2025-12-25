@@ -150,6 +150,13 @@
       }
     });
   }
+  let SAMPLE = [];
+
+  async function loadSamples() {
+    const res = await fetch("data/samples/samples.json");
+    const json = await res.json();
+    SAMPLE = json.samples;
+  }
 
   /* =========================
      Checkbox → layer toggle
@@ -178,6 +185,7 @@
      Init
   ========================= */
   async function init() {
+    await loadSamples();
     await loadStops();
     await loadRoutes();
 
