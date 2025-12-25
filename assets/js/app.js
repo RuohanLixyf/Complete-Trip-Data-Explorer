@@ -73,35 +73,39 @@
   function drawSampleTrips(samples) {
     layers.tripRoute.clearLayers();
 
+    let bounds = null;
+
     samples.forEach(s => {
       if (!s.route || s.route.length < 2) return;
 
       const color =
-      s.mode === "rail"
-        ? "#7c3aed"
-        : s.mode === "bus"
-        ? "#2563eb"
-        : s.mode === "walk_bike"
-        ? "#16a34a"
-        : "#6b7280"; // unknown / other
+        s.mode === "rail"
+          ? "#7c3aed"
+          : s.mode === "bus"
+          ? "#2563eb"
+          : s.mode === "walk_bike"
+          ? "#16a34a"
+          : "#6b7280";
 
-      L.polyline(s.route, {
+      const line = L.polyline(s.route, {
         color,
-        weight: 4,
-        opacity: 0.85
+        weight: 5,
+        opacity: 0.9
       })
-        .bindPopup(
-          <strong>${s.id}</strong><br/>
-           Mode: ${s.mode}<br/>
-           Duration: ${
-            typeof s.duration_min === "number"
-              ? `${s.duration_min} min`
-              : "N/A"
-          }
-        )
-        .addTo(layers.tripRoute);
+        .addTo(layers.tripRoute)
+        .bringToFront(); // 🔥 确保不被其它 layer 盖住
+
+      // 🔑 累积 bounds
+      if (!bounds) bounds = line.getBounds();
+      else bounds.extend(line.getBounds());
     });
+
+    // 🔥 核心：自动跳到 sample 的空间范围
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
   }
+
 
   /* =========================
      Facility layers
