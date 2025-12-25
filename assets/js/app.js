@@ -1,5 +1,5 @@
 /* global L */
-
+let currentViewBounds = null;
 (function () {
 
   /* =========================
@@ -93,18 +93,45 @@
         opacity: 0.9
       })
         .addTo(layers.tripRoute)
-        .bringToFront(); // 🔥 确保不被其它 layer 盖住
+        .bringToFront();
 
-      // 🔑 累积 bounds
+      // 累积 bounds
       if (!bounds) bounds = line.getBounds();
       else bounds.extend(line.getBounds());
     });
 
-    // 🔥 核心：自动跳到 sample 的空间范围
+    // ✅ 只在这里处理 bounds
     if (bounds) {
+      currentViewBounds = bounds;          // 🔑 保存当前数据视角
       map.fitBounds(bounds, { padding: [40, 40] });
     }
   }
+
+  function recenterMap() {
+    if (currentViewBounds) {
+      map.fitBounds(currentViewBounds, { padding: [40, 40] });
+    } else {
+      map.setView([40.758, -111.89], 12);
+    }
+  }
+  const RecenterControl = L.Control.extend({
+    options: { position: "topright" },
+
+    onAdd: function () {
+      const btn = L.DomUtil.create("button", "recenter-btn");
+      btn.innerHTML = "⌖";
+      btn.title = "Recenter map";
+
+      btn.onclick = e => {
+        e.stopPropagation();
+        recenterMap();
+      };
+
+      return btn;
+    }
+  });
+
+  map.addControl(new RecenterControl());
 
 
   /* =========================
