@@ -58,7 +58,24 @@ body{
   background: var(--nova-deep);
   color: #fff;
 }
-.lab-wordmark{ font-size:16px; font-weight:800; }
+.lab-wordmark {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.lab-wordmark .brand {
+  font-size: 22px;
+}
+
+.lab-wordmark .page-title {
+  font-size: 18px;
+  opacity: 0.95;
+}
+
+.lab-wordmark .sep {
+  margin: 0 6px;
+  opacity: 0.7;
+}
 .lab-wordmark .nova{ color:#fff; }
 .lab-wordmark .mobility{ color:var(--nova-sky); }
 
