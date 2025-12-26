@@ -78,25 +78,93 @@ let currentViewBounds = null;
 
     samples.forEach(s => {
       if (!s.route || s.route.length < 2) return;
-
+      // ================
+      // 1. 画路线
+      // ================
       const color =
         s.mode === "rail"
-          ? "#7c3aed"
+          ? "#2132eaff"
           : s.mode === "bus"
           ? "#2563eb"
+          : s.mode === "car"
+          ? "#391b57ff"
           : s.mode === "walk_bike"
-          ? "#16a34a"
+          ? "#15c856ff"
           : "#6b7280";
 
       const line = L.polyline(s.route, {
         color,
-        weight: 5,
+        weight: 3,
         opacity: 0.9
       })
         .addTo(layers.tripRoute)
         .bringToFront();
+      // ================
+      // 2. 起点
+      // ================
+      if (s.origin?.lat && s.origin?.lon) {
+        L.circleMarker([s.origin.lat, s.origin.lon], {
+          radius: 6,
+          color: "#ef4444",       // red
+          fillColor: "#ef4444",
+          fillOpacity: 1
+        })
+        .bindPopup("Origin")
+        .addTo(layers.tripRoute);
+      }
 
-      // 累积 bounds
+      // ================
+      // 3. 终点
+      // ================
+      if (s.destination?.lat && s.destination?.lon) {
+        L.circleMarker([s.destination.lat, s.destination.lon], {
+          radius: 6,
+          color: "#22c55e",       // green
+          fillColor: "#22c55e",
+          fillOpacity: 1
+        })
+        .bindPopup("Destination")
+        .addTo(layers.tripRoute);
+      }
+
+      // ================
+      // 4. access 换乘站
+      // ================
+      if (s.access?.stop_id && s.access?.stop_name) {
+        const stop = layers.tripRoute; // layer
+          
+        // 如果 CSV 里没有 lat/lon，需要你提前给 access 加上坐标
+        if (s.access.lat && s.access.lon) {
+          L.circleMarker([s.access.lat, s.access.lon], {
+            radius: 5,
+            color: "#3b82f6",
+            fillColor: "#3b82f6",
+            fillOpacity: 0.9
+          })
+          .bindPopup(`Access Stop<br>${s.access.stop_name}`)
+          .addTo(layers.tripRoute);
+        }
+      }
+
+      // ================
+      // 5. egress 换乘站
+      // ================
+      if (s.egress?.stop_id && s.egress?.stop_name) {
+        if (s.egress.lat && s.egress.lon) {
+          L.circleMarker([s.egress.lat, s.egress.lon], {
+            radius: 5,
+            color: "#a855f7",
+            fillColor: "#a855f7",
+            fillOpacity: 0.9
+          })
+          .bindPopup(`Egress Stop<br>${s.egress.stop_name}`)
+          .addTo(layers.tripRoute);
+        }
+      }
+
+      // ================
+      // 6. 累积 bounds
+      // ================
       if (!bounds) bounds = line.getBounds();
       else bounds.extend(line.getBounds());
     });
