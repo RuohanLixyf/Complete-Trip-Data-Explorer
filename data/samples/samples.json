@@ -1,6 +1,6 @@
 {
   "schema": "nova.complete_trip.sample.v1",
-  "generated_at": "2025-12-25T23:26:22.256354Z",
+  "generated_at": "2025-12-26T00:21:24.975212Z",
   "count": 4,
   "samples": [
     {
@@ -802,18 +802,18 @@
         "geohash": "9x0wg5z"
       },
       "access": {
-        "stop_id": NaN,
-        "stop_name": NaN
+        "stop_id": null,
+        "stop_name": null
       },
       "egress": {
-        "stop_id": NaN,
-        "stop_name": NaN
+        "stop_id": null,
+        "stop_name": null
       },
       "meta": {
         "linked_trip_id": "RLaKOp9YB2WDo44DoYLLKbeKjqzoWAz9J7vM7wEJxEDBwZExB262rO-1B1XElqEwldbAnxYQlwvwAqDx1xJg",
         "tour_id": "RLaKOp9YB2WDo44DoYLLKbeKjqzoWAz9J7vM7wEJxEDBwZExB262rO-aP2rdXl6lzR0g",
         "purpose": "OBO",
-        "weight": NaN,
+        "weight": null,
         "trip_count": 2
       }
     },
@@ -1015,7 +1015,7 @@
         "linked_trip_id": "RLaKOp9YB2WDo44DoYLLKbeKjqzoWAz9J7vM7wEJxEDBwZExB262rO-1B1XElqEwldbAnxYQlwvwAqDx1xJg",
         "tour_id": "RLaKOp9YB2WDo44DoYLLKbeKjqzoWAz9J7vM7wEJxEDBwZExB262rO-aP2rdXl6lzR0g",
         "purpose": "OBO",
-        "weight": NaN,
+        "weight": null,
         "trip_count": 2
       }
     }

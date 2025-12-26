@@ -14,6 +14,9 @@ OUT_JSON = "./data/samples/samples.json"
 # =========================
 df = pd.read_csv(CSV_PATH)
 
+# 统一把所有 NaN → None，保证 JSON 不会出现 NaN
+df = df.where(pd.notnull(df), None)
+
 # 强制字符串 ID（安全）
 df["trip_id"] = df["trip_id"].astype(str)
 
@@ -21,10 +24,7 @@ df["trip_id"] = df["trip_id"].astype(str)
 # Geometry parser
 # =========================
 def parse_geometry(wkt_str, trip_id):
-    """
-    Parse LINESTRING WKT → [[lat, lng], ...]
-    Leaflet-compatible
-    """
+    """Parse LINESTRING WKT → [[lat, lng], ...] for Leaflet"""
     if not isinstance(wkt_str, str) or not wkt_str.startswith("LINESTRING"):
         print(f"[WARN] Invalid geometry for trip {trip_id}")
         return None
@@ -33,7 +33,7 @@ def parse_geometry(wkt_str, trip_id):
         geom = wkt.loads(wkt_str)
         coords = [[lat, lng] for lng, lat in geom.coords]
 
-        # 简单抽稀（demo 级）
+        # 简单抽稀（demo）
         if len(coords) > 400:
             coords = coords[::3]
 
@@ -42,6 +42,7 @@ def parse_geometry(wkt_str, trip_id):
     except Exception as e:
         print(f"[ERROR] Geometry parse failed for {trip_id}: {e}")
         return None
+
 
 # =========================
 # Duration (minutes)
@@ -54,8 +55,9 @@ def compute_duration_min(row):
     except Exception:
         return None
 
+
 # =========================
-# Mode normalization (UI-aligned)
+# Mode normalization
 # =========================
 def normalize_mode(m):
     if not isinstance(m, str):
@@ -70,6 +72,19 @@ def normalize_mode(m):
         return "walk_bike"
     return "other"
 
+
+# =========================
+# Helper: ensure no NaN sneaks in
+# =========================
+def clean(x):
+    """Convert pandas NaN / None / float('nan') → None (JSON null)"""
+    if x is None:
+        return None
+    if isinstance(x, float) and pd.isna(x):
+        return None
+    return x
+
+
 # =========================
 # Build samples
 # =========================
@@ -83,52 +98,51 @@ for _, r in df.iterrows():
     duration = compute_duration_min(r)
 
     sample = {
-        # ===== Required for map =====
         "id": r["trip_id"],
         "mode": normalize_mode(r["travel_mode"]),
         "route": route,
 
         # ===== Numeric attributes =====
-        "duration_min": duration,
-        "network_distance_km": r.get("network_distance"),
-        "route_distance_km": r.get("route_distance"),
+        "duration_min": clean(duration),
+        "network_distance_km": clean(r.get("network_distance")),
+        "route_distance_km": clean(r.get("route_distance")),
 
         # ===== OD =====
         "origin": {
-            "lon": r.get("orig_lon"),
-            "lat": r.get("orig_lat"),
-            "geohash": r.get("geohash7_orig")
+            "lon": clean(r.get("orig_lon")),
+            "lat": clean(r.get("orig_lat")),
+            "geohash": clean(r.get("geohash7_orig"))
         },
         "destination": {
-            "lon": r.get("dest_lon"),
-            "lat": r.get("dest_lat"),
-            "geohash": r.get("geohash7_dest")
+            "lon": clean(r.get("dest_lon")),
+            "lat": clean(r.get("dest_lat")),
+            "geohash": clean(r.get("geohash7_dest"))
         },
 
         # ===== Transit context =====
         "access": {
-            "stop_id": r.get("access_stop_id"),
-            "stop_name": r.get("access_stop")
+            "stop_id": clean(r.get("access_stop_id")),
+            "stop_name": clean(r.get("access_stop"))
         },
         "egress": {
-            "stop_id": r.get("egress_stop_id"),
-            "stop_name": r.get("egress_stop")
+            "stop_id": clean(r.get("egress_stop_id")),
+            "stop_name": clean(r.get("egress_stop"))
         },
 
-        # ===== Metadata (safe for demo) =====
+        # ===== Metadata =====
         "meta": {
-            "linked_trip_id": r.get("linked_trip_id"),
-            "tour_id": r.get("tour_id"),
-            "purpose": r.get("trip_purpose"),
-            "weight": r.get("trip_weight"),
-            "trip_count": r.get("trip_count")
+            "linked_trip_id": clean(r.get("linked_trip_id")),
+            "tour_id": clean(r.get("tour_id")),
+            "purpose": clean(r.get("trip_purpose")),
+            "weight": clean(r.get("trip_weight")),
+            "trip_count": clean(r.get("trip_count"))
         }
     }
 
     samples.append(sample)
 
 # =========================
-# Output
+# Output JSON
 # =========================
 out = {
     "schema": "nova.complete_trip.sample.v1",
