@@ -184,6 +184,67 @@ let currentViewBounds = null;
       layers.tripRoute.removeFrom(map);
     }
   }
+  function drawODFlows(odData, options = {}) {
+    const {
+      month = null,
+      useLinked = true
+    } = options;
+
+    layers.od.clearLayers();
+
+    const maxCount = Math.max(
+      ...odData.map(d => useLinked ? d.linked_count : d.unlinked_count)
+    );
+
+    odData.forEach(d => {
+      if (month && d.month !== month) return;
+
+      const count = useLinked ? d.linked_count : d.unlinked_count;
+      if (!count || count <= 0) return;
+
+      const oLat = d.o_lat;
+      const oLon = d.o_lon;
+      const dLat = d.d_lat;
+      const dLon = d.d_lon;
+
+      // ===== 曲率（按距离自适应）=====
+      const dx = dLon - oLon;
+      const dy = dLat - oLat;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const curvature = dist * 0.3;
+
+      const midLat = (oLat + dLat) / 2 + curvature;
+      const midLon = (oLon + dLon) / 2;
+
+      // ===== 线宽 scaling =====
+      const weight = 1 + 6 * (count / maxCount);
+
+      const path = L.curve(
+        [
+          "M", [oLat, oLon],
+          "Q", [midLat, midLon],
+              [dLat, dLon]
+        ],
+        {
+          color: "rgba(59,130,246,0.7)",   // blue
+          weight: weight,
+          opacity: 0.8,
+          interactive: true
+        }
+      );
+
+      path.bindPopup(
+        `
+        <b>OD Flow</b><br>
+        Mode: ${d.travel_mode}<br>
+        ${useLinked ? "Linked" : "Unlinked"} count: ${count}
+        `
+      );
+
+      path.addTo(layers.od);
+    });
+  }
+
   function recenterMap() {
     if (currentViewBounds) {
       map.fitBounds(currentViewBounds, { padding: [40, 40] });
@@ -291,7 +352,11 @@ let currentViewBounds = null;
     const json = await res.json();
     return json.samples;
   }
-
+  async function loadODFlows() {
+    const res = await fetch("data/od/od_dashboard_topk.json");
+    if (!res.ok) throw new Error("Failed to load OD JSON");
+    return await res.json();
+  }
   /* =========================
      Checkbox → layer toggle
   ========================= */
@@ -338,6 +403,47 @@ let currentViewBounds = null;
     document.querySelector('[data-view="samples"]').addEventListener("click", () => {
       toggleSamples();
     });
+    document.querySelector('[data-view="od"]').addEventListener("click", () => {
+      toggleOD();
+    });
+    async function toggleOD() {
+      odVisible = !odVisible;
+
+      if (!odVisible) {
+        layers.od.clearLayers();
+        return;
+      }
+
+      if (!cachedOD) {
+        cachedOD = await loadODFlows();   // 你之前已经写好的
+      }
+
+      drawODFlows(cachedOD, {
+        month: "2020-04",     // 之后可接 slider
+        useLinked: true
+      });
+    }
+    let odVisible = false;
+    let cachedOD = null;
+
+    document.getElementById("od-btn").addEventListener("click", async () => {
+      odVisible = !odVisible;
+
+      if (!odVisible) {
+        layers.od.clearLayers();
+        return;
+      }
+
+      if (!cachedOD) {
+        cachedOD = await loadODFlows();
+      }
+
+      drawODFlows(cachedOD, {
+        month: "2020-04",      // 🔧 以后可以接 slider
+        useLinked: true        // 🔧 linked / unlinked toggle
+      });
+    });
+
   }
 
   init();
