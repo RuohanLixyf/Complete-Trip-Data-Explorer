@@ -147,10 +147,10 @@ let currentViewBounds = null;
      Facility layers
   ========================= */
   const facilityLayers = {
-    bus_stop: L.layerGroup().addTo(map),
-    rail_stop: L.layerGroup().addTo(map),
-    bus_route: L.layerGroup().addTo(map),
-    rail_route: L.layerGroup().addTo(map)
+    bus_stop: L.layerGroup(),
+    rail_stop: L.layerGroup(),
+    bus_route: L.layerGroup(),
+    rail_route: L.layerGroup()
   };
 
   /* =========================
