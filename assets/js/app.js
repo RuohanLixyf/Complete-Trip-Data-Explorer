@@ -193,6 +193,7 @@ let currentViewBounds = null;
     layers.od.clearLayers();
 
     const maxCount = Math.max(
+      1,
       ...odData.map(d => useLinked ? d.linked_count : d.unlinked_count)
     );
 
@@ -403,9 +404,6 @@ let currentViewBounds = null;
     document.querySelector('[data-view="samples"]').addEventListener("click", () => {
       toggleSamples();
     });
-    document.querySelector('[data-view="od"]').addEventListener("click", () => {
-      toggleOD();
-    });
 
     let odVisible = false;
     let cachedOD = null;
@@ -430,7 +428,9 @@ let currentViewBounds = null;
     document
       .querySelector('[data-view="od"]')
       .addEventListener("click", toggleOD);
+    let tractCentroids = null;
 
+    tractCentroids = await loadTractCentroids();
   }
 
   init();
