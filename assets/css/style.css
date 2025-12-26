@@ -54,7 +54,7 @@ body{
   align-items: center;
   justify-content: space-between;
 
-  padding: 0 18px;
+  padding: 8px 18px;
   background: var(--nova-deep);
   color: #fff;
 }
@@ -68,7 +68,7 @@ body{
 
 .villanova-logo {
   height: 40px;
-  padding: 8px;     /* 关键：增大内边距 */
+  padding: 5px;     /* 关键：增大内边距 */
   opacity: .95;
   border-radius: 6px;
   background: #fff; /* 如果你希望白框可见，必须加 */
