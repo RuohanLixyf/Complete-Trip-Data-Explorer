@@ -83,9 +83,9 @@ let currentViewBounds = null;
       // ================
       const color =
         s.mode === "rail"
-          ? "#2132eaff"
+          ? "#e23c1bff"
           : s.mode === "bus"
-          ? "#2563eb"
+          ? "rgba(235, 129, 37, 1)"
           : s.mode === "car"
           ? "#391b57ff"
           : s.mode === "walk_bike"
