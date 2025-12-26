@@ -200,51 +200,43 @@ let currentViewBounds = null;
     odData.forEach(d => {
       if (month && d.month !== month) return;
 
+      // ① 坐标存在性 + 数值合法性（双保险）
       const oLat = Number(d.o_lat);
       const oLon = Number(d.o_lon);
       const dLat = Number(d.d_lat);
       const dLon = Number(d.d_lon);
 
-      // 🔴 第一层：端点合法性
       if (
         !Number.isFinite(oLat) ||
         !Number.isFinite(oLon) ||
         !Number.isFinite(dLat) ||
         !Number.isFinite(dLon)
       ) {
-        console.warn("Skip OD (invalid endpoint):", d);
+        console.warn("❌ Skip OD (invalid coords):", d);
         return;
       }
 
+      // ② 计数检查
       const count = useLinked ? d.linked_count : d.unlinked_count;
-      if (!count || count <= 0) return;
+      if (!Number.isFinite(count) || count <= 0) return;
 
-      // ===== 中点 & 曲率 =====
+      // ③ 防御：禁止零长度 OD（O==D）
+      if (oLat === dLat && oLon === dLon) {
+        console.warn("❌ Skip OD (zero-length):", d);
+        return;
+      }
+
+      // ===== 曲率 =====
       const dx = dLon - oLon;
       const dy = dLat - oLat;
       const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if (!Number.isFinite(dist) || dist === 0) {
-        console.warn("Skip OD (bad dist):", d);
-        return;
-      }
-
       const curvature = dist * 0.3;
 
       const midLat = (oLat + dLat) / 2 + curvature;
       const midLon = (oLon + dLon) / 2;
 
-      // 🔴 第二层：控制点合法性（你之前漏了这个）
-      if (
-        !Number.isFinite(midLat) ||
-        !Number.isFinite(midLon)
-      ) {
-        console.warn("Skip OD (invalid control point):", d);
-        return;
-      }
-
-      const maxCountSafe = Math.max(1, maxCount);
-      const weight = 1 + 6 * (count / maxCountSafe);
+      // ===== 线宽 =====
+      const weight = 1 + 6 * (count / maxCount);
 
       const path = L.curve(
         [
@@ -260,9 +252,14 @@ let currentViewBounds = null;
         }
       );
 
+      path.bindPopup(`
+        <b>OD Flow</b><br>
+        Mode: ${d.travel_mode}<br>
+        ${useLinked ? "Linked" : "Unlinked"} count: ${count}
+      `);
+
       path.addTo(layers.od);
     });
-
   }
 
   function recenterMap() {
