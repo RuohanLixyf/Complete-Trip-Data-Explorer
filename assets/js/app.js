@@ -167,8 +167,8 @@ let currentViewBounds = null;
 
       // 4) transfers  ✅（蓝色虚线边框）
       (lt.transfers || []).forEach((t, i) => {
-        const lat = Number(t.lat);
-        const lon = Number(t.lon);
+        const lat = Number(t.lat) + 0.00015;
+        const lon = Number(t.lon) + 0.00015;
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
 
         const transferMarker = L.circleMarker([lat, lon], {
