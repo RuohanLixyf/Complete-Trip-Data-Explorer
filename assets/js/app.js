@@ -111,64 +111,53 @@ let currentViewBounds = null;
 
   function drawSampleTrips(linkedTrips) {
     layers.tripRoute.clearLayers();
-    linkedTripLayers.clear();   // 🔴 必须加
+    linkedTripLayers.clear();
+
     let bounds = null;
 
     linkedTrips.forEach(lt => {
       const group = L.layerGroup().addTo(layers.tripRoute);
       linkedTripLayers.set(lt.linked_trip_id, group);
 
-      // =====================
-      // 1️⃣ 画 OD（一次）
-      // =====================
-      if (lt.origin?.lat && lt.origin?.lon) {
-        L.circleMarker([lt.origin.lat, lt.origin.lon], {
+      // 1) origin marker
+      if (lt.origin && Number.isFinite(Number(lt.origin.lat)) && Number.isFinite(Number(lt.origin.lon))) {
+        L.circleMarker([Number(lt.origin.lat), Number(lt.origin.lon)], {
           radius: 7,
           color: "#ef4444",
           fillColor: "#ef4444",
           fillOpacity: 1
-        })
-          .bindPopup("Origin")
-          // .addTo(layers.tripRoute);
-          .addTo(group);
+        }).bindPopup("Origin").addTo(group);
       }
 
-      if (lt.destination?.lat && lt.destination?.lon) {
-        L.circleMarker([lt.destination.lat, lt.destination.lon], {
+      // 2) destination marker
+      if (lt.destination && Number.isFinite(Number(lt.destination.lat)) && Number.isFinite(Number(lt.destination.lon))) {
+        L.circleMarker([Number(lt.destination.lat), Number(lt.destination.lon)], {
           radius: 7,
           color: "#22c55e",
           fillColor: "#22c55e",
           fillOpacity: 1
-        })
-          .bindPopup("Destination")
-          // .addTo(layers.tripRoute);
-          .addTo(group);
+        }).bindPopup("Destination").addTo(group);
       }
 
-      // =====================
-      // 2️⃣ 画 legs（原 trip）
-      // =====================
-      lt.legs.forEach((leg, idx) => {
+      // 3) legs
+      (lt.legs || []).forEach((leg) => {
         if (!leg.route || leg.route.length < 2) return;
 
         const color =
-          leg.mode === "rail"
-            ? "#e23c1bff"
-            : leg.mode === "bus"
-            ? "rgba(37,166,235,1)"
-            : leg.mode === "car"
-            ? "#391b57ff"
-            : leg.mode === "walk_bike"
-            ? "#15c856ff"
-            : "#6b7280";
+          leg.mode === "rail" ? "#e23c1bff"
+          : leg.mode === "bus" ? "rgba(37,166,235,1)"
+          : leg.mode === "car" ? "#391b57ff"
+          : leg.mode === "walk_bike" ? "#15c856ff"
+          : "#6b7280";
 
         const line = L.polyline(leg.route, {
           color,
           weight: 3,
           opacity: 0.85
         }).addTo(group).bringToFront();
+
         line.on("click", (e) => {
-          L.DomEvent.stopPropagation(e);   // 🔴 关键
+          L.DomEvent.stopPropagation(e);
           highlightLinkedTrip(lt.linked_trip_id);
         });
 
@@ -176,33 +165,33 @@ let currentViewBounds = null;
         else bounds.extend(line.getBounds());
       });
 
-      // =====================
-      // 3️⃣ 画 transfer 点（核心）
-      // =====================
-      lt.transfers?.forEach((t, i) => {
-        if (!t.lat || !t.lon) return;
+      // 4) transfers  ✅（蓝色虚线边框）
+      (lt.transfers || []).forEach((t, i) => {
+        const lat = Number(t.lat);
+        const lon = Number(t.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
 
-        const transferMarker = L.circleMarker([t.lat, t.lon], {
+        const transferMarker = L.circleMarker([lat, lon], {
           radius: 7,
-          color: "#2563eb",        // 🔵 蓝色边框
+          color: "#2563eb",
           weight: 2,
-          dashArray: "4,3",        // 🔑 虚线边框
-          fillColor: "#bfdbfe",    // 浅蓝填充
+          dashArray: "4,3",
+          fillColor: "#bfdbfe",
           fillOpacity: 0.9
-        })
-          .bindPopup(`Transfer ${i + 1}`)
-          .addTo(group);
+        }).bindPopup(`Transfer ${i + 1}`).addTo(group);
 
-        transferMarker.isTransfer = true;   // 🔑【关键】给 transfer 打标记
-        transferMarker.bringToFront();      // 🔑【关键】防止被路线压住
+        transferMarker.isTransfer = true;
+        transferMarker.bringToFront();
       });
+    });
 
-
+    // ✅ 一定要放在 forEach 外面
     if (bounds) {
       currentViewBounds = bounds;
       map.fitBounds(bounds, { padding: [40, 40] });
     }
   }
+
 
   function highlightLinkedTrip(targetId) {
     activeLinkedTripId = targetId;
