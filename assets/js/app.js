@@ -182,17 +182,21 @@ let currentViewBounds = null;
       lt.transfers?.forEach((t, i) => {
         if (!t.lat || !t.lon) return;
 
-        L.circleMarker([t.lat, t.lon], {
-          radius: 6,
-          color: "#f59e0b",      // amber
-          fillColor: "#f59e0b",
-          fillOpacity: 1
+        const transferMarker = L.circleMarker([t.lat, t.lon], {
+          radius: 7,
+          color: "#2563eb",        // 🔵 蓝色边框
+          weight: 2,
+          dashArray: "4,3",        // 🔑 虚线边框
+          fillColor: "#bfdbfe",    // 浅蓝填充
+          fillOpacity: 0.9
         })
           .bindPopup(`Transfer ${i + 1}`)
-          // .addTo(layers.tripRoute);
           .addTo(group);
+
+        transferMarker.isTransfer = true;   // 🔑【关键】给 transfer 打标记
+        transferMarker.bringToFront();      // 🔑【关键】防止被路线压住
       });
-    });
+
 
     if (bounds) {
       currentViewBounds = bounds;
@@ -219,7 +223,11 @@ let currentViewBounds = null;
             layer.setStyle({ opacity: 0.15, weight: 2 });
           }
           if (layer.setRadius) {
-            layer.setRadius(4);
+            if (layer.isTransfer) {
+              layer.setRadius(id === targetId ? 9 : 6);
+            } else {
+              layer.setRadius(id === targetId ? 8 : 4);
+            }
           }
         }
       });
@@ -233,7 +241,11 @@ let currentViewBounds = null;
           layer.setStyle({ opacity: 0.85, weight: 3 });
         }
         if (layer.setRadius) {
-          layer.setRadius(6);
+          if (layer.isTransfer) {
+            layer.setRadius(7);
+          } else {
+            layer.setRadius(6);
+          }
         }
       });
     });
