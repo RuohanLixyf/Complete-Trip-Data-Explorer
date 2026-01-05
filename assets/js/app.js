@@ -71,110 +71,89 @@ let currentViewBounds = null;
   /* =========================
      Draw sample trips
   ========================= */
-  function drawSampleTrips(samples) {
+  function drawSampleTrips(linkedTrips) {
     layers.tripRoute.clearLayers();
 
     let bounds = null;
 
-    samples.forEach(s => {
-      if (!s.route || s.route.length < 2) return;
-      // ================
-      // 1. 画路线
-      // ================
-      const color =
-        s.mode === "rail"
-          ? "#e23c1bff"
-          : s.mode === "bus"
-          ? "rgba(37, 166, 235, 1)"
-          : s.mode === "car"
-          ? "#391b57ff"
-          : s.mode === "walk_bike"
-          ? "#15c856ff"
-          : "#6b7280";
-
-      const line = L.polyline(s.route, {
-        color,
-        weight: 3,
-        opacity: 0.9
-      })
-        .addTo(layers.tripRoute)
-        .bringToFront();
-      // ================
-      // 2. 起点
-      // ================
-      if (s.origin?.lat && s.origin?.lon) {
-        L.circleMarker([s.origin.lat, s.origin.lon], {
-          radius: 6,
-          color: "#ef4444",       // red
+    linkedTrips.forEach(lt => {
+      // =====================
+      // 1️⃣ 画 OD（一次）
+      // =====================
+      if (lt.origin?.lat && lt.origin?.lon) {
+        L.circleMarker([lt.origin.lat, lt.origin.lon], {
+          radius: 7,
+          color: "#ef4444",
           fillColor: "#ef4444",
           fillOpacity: 1
         })
-        .bindPopup("Origin")
-        .addTo(layers.tripRoute);
+          .bindPopup("Origin")
+          .addTo(layers.tripRoute);
       }
 
-      // ================
-      // 3. 终点
-      // ================
-      if (s.destination?.lat && s.destination?.lon) {
-        L.circleMarker([s.destination.lat, s.destination.lon], {
-          radius: 6,
-          color: "#22c55e",       // green
+      if (lt.destination?.lat && lt.destination?.lon) {
+        L.circleMarker([lt.destination.lat, lt.destination.lon], {
+          radius: 7,
+          color: "#22c55e",
           fillColor: "#22c55e",
           fillOpacity: 1
         })
-        .bindPopup("Destination")
-        .addTo(layers.tripRoute);
-      }
-
-      // ================
-      // 4. access 换乘站
-      // ================
-      if (s.access?.stop_id && s.access?.stop_name) {
-        const stop = layers.tripRoute; // layer
-          
-        // 如果 CSV 里没有 lat/lon，需要你提前给 access 加上坐标
-        if (s.access.lat && s.access.lon) {
-          L.circleMarker([s.access.lat, s.access.lon], {
-            radius: 5,
-            color: "#3b82f6",
-            fillColor: "#3b82f6",
-            fillOpacity: 0.9
-          })
-          .bindPopup(`Access Stop<br>${s.access.stop_name}`)
+          .bindPopup("Destination")
           .addTo(layers.tripRoute);
-        }
       }
 
-      // ================
-      // 5. egress 换乘站
-      // ================
-      if (s.egress?.stop_id && s.egress?.stop_name) {
-        if (s.egress.lat && s.egress.lon) {
-          L.circleMarker([s.egress.lat, s.egress.lon], {
-            radius: 5,
-            color: "#a855f7",
-            fillColor: "#a855f7",
-            fillOpacity: 0.9
-          })
-          .bindPopup(`Egress Stop<br>${s.egress.stop_name}`)
+      // =====================
+      // 2️⃣ 画 legs（原 trip）
+      // =====================
+      lt.legs.forEach((leg, idx) => {
+        if (!leg.route || leg.route.length < 2) return;
+
+        const color =
+          leg.mode === "rail"
+            ? "#e23c1bff"
+            : leg.mode === "bus"
+            ? "rgba(37,166,235,1)"
+            : leg.mode === "car"
+            ? "#391b57ff"
+            : leg.mode === "walk_bike"
+            ? "#15c856ff"
+            : "#6b7280";
+
+        const line = L.polyline(leg.route, {
+          color,
+          weight: 3,
+          opacity: 0.85
+        })
+          .addTo(layers.tripRoute)
+          .bringToFront();
+
+        if (!bounds) bounds = line.getBounds();
+        else bounds.extend(line.getBounds());
+      });
+
+      // =====================
+      // 3️⃣ 画 transfer 点（核心）
+      // =====================
+      lt.transfers?.forEach((t, i) => {
+        if (!t.lat || !t.lon) return;
+
+        L.circleMarker([t.lat, t.lon], {
+          radius: 6,
+          color: "#f59e0b",      // amber
+          fillColor: "#f59e0b",
+          fillOpacity: 1
+        })
+          .bindPopup(`Transfer ${i + 1}`)
           .addTo(layers.tripRoute);
-        }
-      }
-
-      // ================
-      // 6. 累积 bounds
-      // ================
-      if (!bounds) bounds = line.getBounds();
-      else bounds.extend(line.getBounds());
+      });
     });
 
-    // ✅ 只在这里处理 bounds
     if (bounds) {
-      currentViewBounds = bounds;          // 🔑 保存当前数据视角
+      currentViewBounds = bounds;
       map.fitBounds(bounds, { padding: [40, 40] });
     }
-    }
+  }
+
   function toggleSamples() {
     samplesVisible = !samplesVisible;
 
@@ -370,7 +349,7 @@ let currentViewBounds = null;
     const res = await fetch("data/samples/samples_center2air.json");
     if (!res.ok) throw new Error("Failed to load samples.json");
     const json = await res.json();
-    return json.samples;
+    return json.linked_trips;   // 🔴 CHANGED
   }
   async function loadODFlows() {
     const res = await fetch("data/OD/od_dashboard_topk.json");
@@ -415,8 +394,8 @@ let currentViewBounds = null;
 
     // ===== Load samples =====
     try {
-      const samples = await loadSampleTrips();
-      drawSampleTrips(samples);
+      const linkedTrips = await loadSampleTrips();
+      drawSampleTrips(linkedTrips);
     } catch (e) {
       console.error("loadSampleTrips failed", e);
     }
