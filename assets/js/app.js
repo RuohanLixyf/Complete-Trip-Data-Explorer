@@ -61,22 +61,63 @@ let currentViewBounds = null;
      Core layers
   ========================= */
   const layers = {
-    od: L.layerGroup().addTo(map),
+    odPolygon: L.layerGroup().addTo(map),  // 🆕
+    odFlow: L.layerGroup().addTo(map),     // 🆕
     tripRoute: L.layerGroup().addTo(map),
     accessEgress: L.layerGroup().addTo(map),
     tdi: L.geoJSON(null).addTo(map)
   };
   let samplesVisible = true;
+  /* =========================
+     Draw OD
+  ========================= */
+  function drawODPolygon(od) {
+    layers.odPolygon.clearLayers();
+
+    if (!od?.origin?.geometry || !od?.destination?.geometry) return;
+
+    const originStyle = {
+      color: "#2563eb",        // blue
+      weight: 2,
+      fillColor: "#2563eb",
+      fillOpacity: 0.15
+    };
+
+    const destStyle = {
+      color: "#dc2626",        // red
+      weight: 2,
+      fillColor: "#dc2626",
+      fillOpacity: 0.15
+    };
+
+    L.geoJSON(od.origin.geometry, {
+      style: originStyle
+    })
+      .bindPopup("Origin Tract")
+      .addTo(layers.odPolygon);
+
+    L.geoJSON(od.destination.geometry, {
+      style: destStyle
+    })
+      .bindPopup("Destination Tract")
+      .addTo(layers.odPolygon);
+  }
 
   /* =========================
      Draw sample trips
   ========================= */
+  let activeLinkedTripId = null;
+  const linkedTripLayers = new Map();   // linked_trip_id → LayerGroup
+
   function drawSampleTrips(linkedTrips) {
     layers.tripRoute.clearLayers();
-
+    linkedTripLayers.clear();   // 🔴 必须加
     let bounds = null;
 
     linkedTrips.forEach(lt => {
+      const group = L.layerGroup().addTo(layers.tripRoute);
+      linkedTripLayers.set(lt.linked_trip_id, group);
+
       // =====================
       // 1️⃣ 画 OD（一次）
       // =====================
@@ -88,7 +129,8 @@ let currentViewBounds = null;
           fillOpacity: 1
         })
           .bindPopup("Origin")
-          .addTo(layers.tripRoute);
+          // .addTo(layers.tripRoute);
+          .addTo(group);
       }
 
       if (lt.destination?.lat && lt.destination?.lon) {
@@ -99,7 +141,8 @@ let currentViewBounds = null;
           fillOpacity: 1
         })
           .bindPopup("Destination")
-          .addTo(layers.tripRoute);
+          // .addTo(layers.tripRoute);
+          .addTo(group);
       }
 
       // =====================
@@ -124,7 +167,12 @@ let currentViewBounds = null;
           weight: 3,
           opacity: 0.85
         })
-          .addTo(layers.tripRoute)
+        line.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);   // 🔴 关键
+          highlightLinkedTrip(lt.linked_trip_id);
+        });
+          // .addTo(layers.tripRoute)
+          .addTo(group)
           .bringToFront();
 
         if (!bounds) bounds = line.getBounds();
@@ -144,7 +192,8 @@ let currentViewBounds = null;
           fillOpacity: 1
         })
           .bindPopup(`Transfer ${i + 1}`)
-          .addTo(layers.tripRoute);
+          // .addTo(layers.tripRoute);
+          .addTo(group);
       });
     });
 
@@ -154,6 +203,44 @@ let currentViewBounds = null;
     }
   }
 
+  function highlightLinkedTrip(targetId) {
+    activeLinkedTripId = targetId;
+
+    linkedTripLayers.forEach((group, id) => {
+      group.eachLayer(layer => {
+        if (id === targetId) {
+          // 高亮
+          if (layer.setStyle) {
+            layer.setStyle({ opacity: 1, weight: 4 });
+          }
+          if (layer.setRadius) {
+            layer.setRadius(8);
+          }
+        } else {
+          // 灰化
+          if (layer.setStyle) {
+            layer.setStyle({ opacity: 0.15, weight: 2 });
+          }
+          if (layer.setRadius) {
+            layer.setRadius(4);
+          }
+        }
+      });
+    });
+  }
+  map.on("click", () => {
+    activeLinkedTripId = null;
+    linkedTripLayers.forEach(group => {
+      group.eachLayer(layer => {
+        if (layer.setStyle) {
+          layer.setStyle({ opacity: 0.85, weight: 3 });
+        }
+        if (layer.setRadius) {
+          layer.setRadius(6);
+        }
+      });
+    });
+  });
   function toggleSamples() {
     samplesVisible = !samplesVisible;
 
@@ -239,7 +326,7 @@ let currentViewBounds = null;
         ${useLinked ? "Linked" : "Unlinked"} count: ${count}
       `);
 
-      path.addTo(layers.od);
+      path.addTo(layers.odFlow);
     });
 
   }
@@ -370,6 +457,7 @@ let currentViewBounds = null;
       });
     });
 
+
   /* =========================
      Init
   ========================= */
@@ -394,8 +482,12 @@ let currentViewBounds = null;
 
     // ===== Load samples =====
     try {
-      const linkedTrips = await loadSampleTrips();
-      drawSampleTrips(linkedTrips);
+      const res = await fetch("data/samples/samples_center2air.json");
+      const json = await res.json();
+
+      drawODPolygon(json.od);                 // 🆕 新增
+      drawSampleTrips(json.linked_trips);     // 原逻辑
+
     } catch (e) {
       console.error("loadSampleTrips failed", e);
     }
