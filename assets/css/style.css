@@ -106,7 +106,7 @@ body{
 
 .villanova-logo {
   display: block; 
-  height: 30px;
+  height: 32px;
   padding: 2px 3px;     /* 关键：增大内边距 */
   opacity: .95;
   border-radius: 5px;
