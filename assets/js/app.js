@@ -1,210 +1,543 @@
 /* global L */
-(() => {
+let currentViewBounds = null;
+(function () {
 
-  /* =========================================================
-     GLOBAL STATE
-  ========================================================= */
-  const STATE = {
-    map: null,
-    currentViewBounds: null,
+  /* =========================
+     Map init
+  ========================= */
+  const map = L.map("map", { zoomControl: true })
+    .setView([40.758, -111.89], 12);
 
-    basemap: {
-      current: null,
-      layers: {}
-    },
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap contributors"
+  }).addTo(map);
 
-    layers: {
-      odPolygon: null,
-      odFlow: null,
-      tripRoute: null,
-      facilities: {
-        bus_stop: null,
-        bus_route: null,
-        rail_stop: null,
-        rail_route: null
-      }
-    }
-  };
-
-  /* =========================================================
-     MAP INIT
-  ========================================================= */
-  function initMap() {
-    STATE.map = L.map("map", { zoomControl: true })
-      .setView([40.758, -111.89], 12);
-
-    STATE.basemap.layers.light = L.tileLayer(
+  const baseMaps = {
+    light: L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
       { attribution: "© OpenStreetMap © CARTO" }
-    );
-
-    STATE.basemap.layers.dark = L.tileLayer(
+    ),
+    dark: L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       { attribution: "© OpenStreetMap © CARTO" }
-    );
+    )
+  };
 
-    STATE.basemap.current = STATE.basemap.layers.light;
-    STATE.basemap.current.addTo(STATE.map);
-  }
+  let currentBasemap = "light";
+  baseMaps.light.addTo(map);
 
   function switchBasemap(name) {
-    const next = STATE.basemap.layers[name];
-    if (!next || next === STATE.basemap.current) return;
+    if (name === currentBasemap) return;
 
-    STATE.map.removeLayer(STATE.basemap.current);
-    next.addTo(STATE.map);
-    STATE.basemap.current = next;
+    Object.values(baseMaps).forEach(l => map.removeLayer(l));
+    baseMaps[name].addTo(map);
+    currentBasemap = name;
 
-    document.querySelectorAll(".bm-btn").forEach(btn =>
-      btn.classList.toggle("active", btn.dataset.basemap === name)
-    );
-  }
-
-  /* =========================================================
-     CORE LAYERS
-  ========================================================= */
-  function initLayers() {
-    STATE.layers.odPolygon = L.layerGroup().addTo(STATE.map);
-    STATE.layers.odFlow = L.layerGroup().addTo(STATE.map);
-    STATE.layers.tripRoute = L.layerGroup().addTo(STATE.map);
-
-    Object.keys(STATE.layers.facilities).forEach(k => {
-      STATE.layers.facilities[k] = L.layerGroup();
+    document.querySelectorAll(".bm-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.basemap === name);
     });
   }
 
-  /* =========================================================
-     DRAW OD POLYGON
-  ========================================================= */
-  function drawODPolygon(od) {
-    STATE.layers.odPolygon.clearLayers();
-    if (!od?.origin?.geometry || !od?.destination?.geometry) return;
-
-    L.geoJSON(od.origin.geometry, {
-      style: { color: "#2563eb", weight: 2, fillOpacity: 0.15 }
-    }).bindPopup("Origin").addTo(STATE.layers.odPolygon);
-
-    L.geoJSON(od.destination.geometry, {
-      style: { color: "#dc2626", weight: 2, fillOpacity: 0.15 }
-    }).bindPopup("Destination").addTo(STATE.layers.odPolygon);
+  /* =========================
+     Mode helpers
+  ========================= */
+  function normalizeStopMode(mode) {
+    if (!mode) return null;
+    const m = mode.toLowerCase();
+    if (m.includes("bus") || m.includes("micro")) return "bus";
+    if (m.includes("trax") || m.includes("frontrunner")) return "rail";
+    return null;
   }
 
-  /* =========================================================
-     DRAW SAMPLE TRIPS
-  ========================================================= */
-  const linkedTripLayers = new Map();
+  function normalizeRouteMode(routeType) {
+    if (!routeType) return null;
+    const railLines = ["blue line", "red line", "green line", "s line", "frontrunner"];
+    const t = routeType.toLowerCase();
+    if (railLines.some(r => t.includes(r))) return "rail";
+    return "bus";
+  }
 
-  function drawSampleTrips(trips) {
-    STATE.layers.tripRoute.clearLayers();
+  /* =========================
+     Core layers
+  ========================= */
+  const layers = {
+    odPolygon: L.layerGroup().addTo(map),  // 🆕
+    odFlow: L.layerGroup().addTo(map),     // 🆕
+    tripRoute: L.layerGroup().addTo(map),
+    accessEgress: L.layerGroup().addTo(map),
+    tdi: L.geoJSON(null).addTo(map)
+  };
+  let samplesVisible = true;
+  /* =========================
+     Draw OD
+  ========================= */
+  function drawODPolygon(od) {
+    layers.odPolygon.clearLayers();
+
+    if (!od?.origin?.geometry || !od?.destination?.geometry) return;
+
+    const originStyle = {
+      color: "#2563eb",        // blue
+      weight: 2,
+      fillColor: "#2563eb",
+      fillOpacity: 0.15
+    };
+
+    const destStyle = {
+      color: "#dc2626",        // red
+      weight: 2,
+      fillColor: "#dc2626",
+      fillOpacity: 0.15
+    };
+
+    L.geoJSON(od.origin.geometry, {
+      style: originStyle
+    })
+      .bindPopup("Origin Tract")
+      .addTo(layers.odPolygon);
+
+    L.geoJSON(od.destination.geometry, {
+      style: destStyle
+    })
+      .bindPopup("Destination Tract")
+      .addTo(layers.odPolygon);
+  }
+
+  /* =========================
+     Draw sample trips
+  ========================= */
+  let activeLinkedTripId = null;
+  const linkedTripLayers = new Map();   // linked_trip_id → LayerGroup
+
+  function drawSampleTrips(linkedTrips) {
+    layers.tripRoute.clearLayers();
     linkedTripLayers.clear();
 
     let bounds = null;
 
-    trips.forEach(t => {
-      const g = L.layerGroup().addTo(STATE.layers.tripRoute);
-      linkedTripLayers.set(t.linked_trip_id, g);
+    linkedTrips.forEach(lt => {
+      const group = L.layerGroup().addTo(layers.tripRoute);
+      linkedTripLayers.set(lt.linked_trip_id, group);
 
-      t.legs?.forEach(leg => {
+      // 1) origin marker
+      if (lt.origin && Number.isFinite(Number(lt.origin.lat)) && Number.isFinite(Number(lt.origin.lon))) {
+        L.circleMarker([Number(lt.origin.lat), Number(lt.origin.lon)], {
+          radius: 7,
+          color: "#ef4444",
+          fillColor: "#ef4444",
+          fillOpacity: 1
+        }).bindPopup("Origin").addTo(group);
+      }
+
+      // 2) destination marker
+      if (lt.destination && Number.isFinite(Number(lt.destination.lat)) && Number.isFinite(Number(lt.destination.lon))) {
+        L.circleMarker([Number(lt.destination.lat), Number(lt.destination.lon)], {
+          radius: 7,
+          color: "#22c55e",
+          fillColor: "#22c55e",
+          fillOpacity: 1
+        }).bindPopup("Destination").addTo(group);
+      }
+
+      // 3) legs
+      (lt.legs || []).forEach((leg) => {
         if (!leg.route || leg.route.length < 2) return;
 
         const color =
-          leg.mode === "rail" ? "#e23c1b"
-          : leg.mode === "bus" ? "#2563eb"
-          : leg.mode === "car" ? "#6d28d9"
-          : leg.mode === "walk_bike" ? "#16a34a"
+          leg.mode === "rail" ? "#e23c1bff"
+          : leg.mode === "bus" ? "rgba(37,166,235,1)"
+          : leg.mode === "car" ? "#391b57ff"
+          : leg.mode === "walk_bike" ? "#15c856ff"
           : "#6b7280";
 
         const line = L.polyline(leg.route, {
           color,
           weight: 3,
           opacity: 0.85
-        }).addTo(g);
+        }).addTo(group).bringToFront();
 
-        bounds = bounds ? bounds.extend(line.getBounds()) : line.getBounds();
+        line.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          highlightLinkedTrip(lt.linked_trip_id);
+        });
+
+        if (!bounds) bounds = line.getBounds();
+        else bounds.extend(line.getBounds());
       });
 
-      t.transfers?.forEach((p, i) => {
-        L.circleMarker([p.lat, p.lon], {
-          radius: 6,
+      // 4) transfers  ✅（蓝色虚线边框）
+      (lt.transfers || []).forEach((t, i) => {
+        const lat = Number(t.lat) + 0.00015;
+        const lon = Number(t.lon) + 0.00015;
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+        const transferMarker = L.circleMarker([lat, lon], {
+          radius: 7,
           color: "#2563eb",
+          weight: 2,
           dashArray: "4,3",
+          fillColor: "#bfdbfe",
           fillOpacity: 0.9
-        }).bindPopup(`Transfer ${i + 1}`).addTo(g);
+        }).bindPopup(`Transfer ${i + 1}`).addTo(group);
+
+        transferMarker.isTransfer = true;
+        transferMarker.bringToFront();
       });
     });
 
+    // ✅ 一定要放在 forEach 外面
     if (bounds) {
-      STATE.currentViewBounds = bounds;
-      STATE.map.fitBounds(bounds, { padding: [40, 40] });
+      currentViewBounds = bounds;
+      map.fitBounds(bounds, { padding: [40, 40] });
     }
   }
 
-  /* =========================================================
-     FACILITIES
-  ========================================================= */
-  function normalizeStopMode(m) {
-    if (!m) return null;
-    m = m.toLowerCase();
-    if (m.includes("bus")) return "bus";
-    if (m.includes("trax") || m.includes("rail")) return "rail";
-    return null;
+
+  function highlightLinkedTrip(targetId) {
+    activeLinkedTripId = targetId;
+
+    linkedTripLayers.forEach((group, id) => {
+      group.eachLayer(layer => {
+        if (id === targetId) {
+          // 高亮
+          if (layer.setStyle) {
+            layer.setStyle({ opacity: 1, weight: 4 });
+          }
+          if (layer.setRadius) {
+            layer.setRadius(8);
+          }
+        } else {
+          // 灰化
+          if (layer.setStyle) {
+            layer.setStyle({ opacity: 0.15, weight: 2 });
+          }
+          if (layer.setRadius) {
+            if (layer.isTransfer) {
+              layer.setRadius(id === targetId ? 9 : 6);
+            } else {
+              layer.setRadius(id === targetId ? 8 : 4);
+            }
+          }
+        }
+      });
+    });
+  }
+  map.on("click", () => {
+    activeLinkedTripId = null;
+    linkedTripLayers.forEach(group => {
+      group.eachLayer(layer => {
+        if (layer.setStyle) {
+          layer.setStyle({ opacity: 0.85, weight: 3 });
+        }
+        if (layer.setRadius) {
+          if (layer.isTransfer) {
+            layer.setRadius(7);
+          } else {
+            layer.setRadius(6);
+          }
+        }
+      });
+    });
+  });
+  function toggleSamples() {
+    samplesVisible = !samplesVisible;
+
+    if (samplesVisible) {
+      layers.tripRoute.addTo(map);
+    } else {
+      layers.tripRoute.removeFrom(map);
+    }
+  }
+  function filterTripsByOD(trips, originTract, destinationTract) {
+    if (!originTract || !destinationTract) return [];
+
+    return trips.filter(t =>
+      t.origin_tract === originTract &&
+      t.destination_tract === destinationTract
+    );
+  }
+  function drawODFlows(odData, options = {}) {
+    const {
+      month = null,
+      useLinked = true
+    } = options;
+
+    layers.odFlow.clearLayers();
+
+    const maxCount = Math.max(
+      1,
+      ...odData.map(d => useLinked ? d.linked_count : d.unlinked_count)
+    );
+
+    odData.forEach(d => {
+      if (month && d.month !== month) return;
+
+      // ① 坐标存在性 + 数值合法性
+      const oLat = Number(d.o_lat);
+      const oLon = Number(d.o_lon);
+      const dLat = Number(d.d_lat);
+      const dLon = Number(d.d_lon);
+
+      if (
+        !Number.isFinite(oLat) ||
+        !Number.isFinite(oLon) ||
+        !Number.isFinite(dLat) ||
+        !Number.isFinite(dLon)
+      ) {
+        console.warn("❌ Skip OD (invalid coords):", d);
+        return;
+      }
+
+      // ② 计数检查
+      const count = useLinked ? d.linked_count : d.unlinked_count;
+      if (!Number.isFinite(count) || count <= 0) return;
+
+      // ③ 防御：禁止零长度 OD
+      if (oLat === dLat && oLon === dLon) {
+        console.warn("❌ Skip OD (zero-length):", d);
+        return;
+      }
+
+      // ===== 曲率（用于“伪曲线”）=====
+      const dx = dLon - oLon;
+      const dy = dLat - oLat;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const curvature = dist * 0.3;
+
+      const midLat = (oLat + dLat) / 2 + curvature;
+      const midLon = (oLon + dLon) / 2;
+
+      // ===== 线宽 scaling =====
+      const weight = 1 + 6 * (count / maxCount);
+
+      // ✅ 用 polyline（三点）代替 curve
+      const path = L.polyline(
+        [
+          [oLat, oLon],
+          [midLat, midLon],
+          [dLat, dLon]
+        ],
+        {
+          color: "rgba(59,130,246,0.7)",
+          weight: weight,
+          opacity: 0.8,
+          smoothFactor: 1.5,   // 视觉更平滑
+          interactive: true
+        }
+      );
+
+      path.bindPopup(`
+        <b>OD Flow</b><br>
+        Mode: ${d.travel_mode}<br>
+        ${useLinked ? "Linked" : "Unlinked"} count: ${count}
+      `);
+
+      path.addTo(layers.odFlow);
+    });
+
   }
 
-  async function loadFacilities() {
-    const stops = await fetch("data/UTA/UTA_Stops.geojson").then(r => r.json());
+  function recenterMap() {
+    if (currentViewBounds) {
+      map.fitBounds(currentViewBounds, { padding: [40, 40] });
+    } else {
+      map.setView([40.758, -111.89], 12);
+    }
+  }
+  const RecenterControl = L.Control.extend({
+    options: { position: "topright" },
 
-    L.geoJSON(stops, {
+    onAdd: function () {
+      const btn = L.DomUtil.create("button", "recenter-btn");
+      btn.innerHTML = "⌖";
+      btn.title = "Recenter map";
+
+      btn.onclick = e => {
+        e.stopPropagation();
+        recenterMap();
+      };
+
+      return btn;
+    }
+  });
+
+  map.addControl(new RecenterControl());
+
+
+  /* =========================
+     Facility layers
+  ========================= */
+  const facilityLayers = {
+    bus_stop: L.layerGroup(),
+    rail_stop: L.layerGroup(),
+    bus_route: L.layerGroup(),
+    rail_route: L.layerGroup()
+  };
+
+  /* =========================
+     Load facilities
+  ========================= */
+  async function loadStops() {
+    const res = await fetch("data/UTA/UTA_Stops.geojson");
+    const data = await res.json();
+
+    facilityLayers.bus_stop.clearLayers();
+    facilityLayers.rail_stop.clearLayers();
+
+    L.geoJSON(data, {
       pointToLayer: (f, latlng) => {
         const mode = normalizeStopMode(f.properties.mode);
         if (!mode) return null;
 
-        return L.circleMarker(latlng, {
+        const layer = L.circleMarker(latlng, {
           radius: 4,
           color: mode === "bus" ? "#2563eb" : "#7c3aed",
+          weight: 1,
           fillOpacity: 0.9
-        }).bindPopup(f.properties.stop_name);
-      },
-      onEachFeature: (f, l) => {
-        const mode = normalizeStopMode(f.properties.mode);
-        if (mode === "bus") l.addTo(STATE.layers.facilities.bus_stop);
-        if (mode === "rail") l.addTo(STATE.layers.facilities.rail_stop);
+        });
+
+        layer.bindPopup(
+          `${f.properties.stop_name}<br><small>${f.properties.mode}</small>`
+        );
+
+        if (mode === "bus") layer.addTo(facilityLayers.bus_stop);
+        if (mode === "rail") layer.addTo(facilityLayers.rail_stop);
+
+        return layer;
       }
     });
   }
 
-  function bindFacilityCheckboxes() {
-    document.querySelectorAll("input[data-layer]").forEach(cb => {
-      cb.addEventListener("change", e => {
-        const layer = STATE.layers.facilities[e.target.dataset.layer];
-        if (!layer) return;
+  async function loadRoutes() {
+    const res = await fetch("data/UTA/UTA_Routes.geojson");
+    const data = await res.json();
 
-        e.target.checked
-          ? layer.addTo(STATE.map)
-          : STATE.map.removeLayer(layer);
-      });
+    facilityLayers.bus_route.clearLayers();
+    facilityLayers.rail_route.clearLayers();
+
+    L.geoJSON(data, {
+      style: f => ({
+        color: f.properties.mode === "bus" ? "#2563eb" : "#7c3aed",
+        weight: 2,
+        opacity: 0.6
+      }),
+      onEachFeature: (f, layer) => {
+        const mode = normalizeRouteMode(f.properties.routetype);
+        if (!mode) return;
+
+        layer.bindPopup(
+          `${f.properties.route_name}<br><small>${f.properties.routetype}</small>`
+        );
+
+        if (mode === "bus") layer.addTo(facilityLayers.bus_route);
+        if (mode === "rail") layer.addTo(facilityLayers.rail_route);
+      }
     });
   }
 
-  /* =========================================================
-     INIT
-  ========================================================= */
+  /* =========================
+     Load sample JSON
+  ========================= */
+  async function loadSampleTrips() {
+    const res = await fetch("data/samples/samples_center2air.json");
+    if (!res.ok) throw new Error("Failed to load samples.json");
+    const json = await res.json();
+    return json.linked_trips;   // 🔴 CHANGED
+  }
+  async function loadODFlows() {
+    const res = await fetch("data/OD/od_dashboard_topk.json");
+    if (!res.ok) throw new Error("Failed to load OD JSON");
+    return await res.json();
+  }
+  /* =========================
+     Checkbox → layer toggle
+  ========================= */
+  document
+    .querySelectorAll('input[type="checkbox"][data-layer]')
+    .forEach(cb => {
+      cb.addEventListener("change", e => {
+        const layer = facilityLayers[e.target.dataset.layer];
+        if (!layer) return;
+        if (e.target.checked) map.addLayer(layer);
+        else map.removeLayer(layer);
+      });
+    });
+    
+  document.getElementById("originTract").addEventListener("change", applyODFilter);
+  document.getElementById("destinationTract").addEventListener("change", applyODFilter);
+
+  function applyODFilter() {
+    const o = document.getElementById("originTract").value;
+    const d = document.getElementById("destinationTract").value;
+
+    if (!o || !d) return;
+
+    const filtered = filterTripsByOD(allTrips, o, d);
+    drawSampleTrips(filtered);
+  }
+
+
+  /* =========================
+     Init
+  ========================= */
   async function init() {
-    initMap();
-    initLayers();
-    await loadFacilities();
-    bindFacilityCheckboxes();
+    try {
+      await loadStops();
+    } catch (e) {
+      console.error("loadStops failed", e);
+    }
 
-    document.querySelectorAll(".bm-btn").forEach(btn =>
-      btn.addEventListener("click", () =>
-        switchBasemap(btn.dataset.basemap)
-      )
-    );
+    try {
+      await loadRoutes();
+    } catch (e) {
+      console.error("loadRoutes failed", e);
+    }
 
-    const sample = await fetch("data/samples/samples_center2air.json")
-      .then(r => r.json());
+    document.querySelectorAll(".bm-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        switchBasemap(btn.dataset.basemap);
+      });
+    });
 
-    drawODPolygon(sample.od);
-    drawSampleTrips(sample.linked_trips);
+    // ===== Load samples =====
+    try {
+      const res = await fetch("data/samples/samples_center2air.json");
+      const json = await res.json();
+
+      drawODPolygon(json.od);                 // 🆕 新增
+      drawSampleTrips(json.linked_trips);     // 原逻辑
+
+    } catch (e) {
+      console.error("loadSampleTrips failed", e);
+    }
+    // document.querySelector('[data-view="samples"]').addEventListener("click", () => {
+    //   toggleSamples();
+    // });
+
+    let odVisible = false;
+    let cachedOD = null;
+
+    async function toggleOD() {
+      odVisible = !odVisible;
+
+      if (!odVisible) {
+        layers.odFlow.clearLayers();
+        return;
+      }
+
+      if (!cachedOD) {
+        cachedOD = await loadODFlows();   // 你之前已经写好的
+      }
+
+      drawODFlows(cachedOD, {
+        month: null,   // 👈 不过滤
+        useLinked: true
+      });
+    }
+    document
+      // .querySelector('[data-view="od"]')
+      // .addEventListener("click", toggleOD);
+
   }
 
   init();
