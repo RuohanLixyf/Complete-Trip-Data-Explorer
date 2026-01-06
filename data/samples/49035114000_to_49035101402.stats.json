@@ -1,6 +1,6 @@
 {
   "schema": "nova.complete_trip.od_stats.v1",
-  "generated_at": "2026-01-06T22:20:34.274452Z",
+  "generated_at": "2026-01-06T22:27:23.273439Z",
   "od": {
     "origin": "49035114000",
     "destination": "49035101402"

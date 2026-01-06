@@ -564,22 +564,6 @@ let currentViewBounds = null;
       });
     });
     
-  document.getElementById("originTract").addEventListener("change", applyODFilter);
-  document.getElementById("destinationTract").addEventListener("change", applyODFilter);
-
-  function applyODFilter() {
-    const o = document.getElementById("originTract").value;
-    const d = document.getElementById("destinationTract").value;
-
-    if (!o || !d) return;
-
-    const filtered = filterTripsByOD(allTrips, o, d);
-    drawSampleTrips(filtered);
-    
-    // 2️⃣ 新增逻辑：OD → stats.json → stats panel
-    const stats = await loadStatsForOD(o, d);
-    renderStats(stats);
-  }
   document.getElementById("originTract").addEventListener("change", applyODSelection);
   document.getElementById("destinationTract").addEventListener("change", applyODSelection);
 
