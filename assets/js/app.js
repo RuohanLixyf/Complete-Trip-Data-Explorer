@@ -123,8 +123,8 @@ let currentViewBounds = null;
       if (lt.origin && Number.isFinite(Number(lt.origin.lat)) && Number.isFinite(Number(lt.origin.lon))) {
         L.circleMarker([Number(lt.origin.lat), Number(lt.origin.lon)], {
           radius: 7,
-          color: "#ef4444",
-          fillColor: "#ef4444",
+          color: "#22c55e",
+          fillColor: "#22c55e",
           fillOpacity: 1
         }).bindPopup("Origin").addTo(group);
       }
@@ -133,8 +133,8 @@ let currentViewBounds = null;
       if (lt.destination && Number.isFinite(Number(lt.destination.lat)) && Number.isFinite(Number(lt.destination.lon))) {
         L.circleMarker([Number(lt.destination.lat), Number(lt.destination.lon)], {
           radius: 7,
-          color: "#22c55e",
-          fillColor: "#22c55e",
+          color: "#ef4444",
+          fillColor: "#ef4444",
           fillOpacity: 1
         }).bindPopup("Destination").addTo(group);
       }
