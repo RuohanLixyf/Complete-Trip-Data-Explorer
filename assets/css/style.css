@@ -48,7 +48,7 @@ body{
 .landing-footer{ margin-top:60px; font-size:14px; color:var(--muted); }
 
 #app-shell {
-  height: 100vh;
+  height: calc(100vh - 24px);
   margin: 12px;                 /* 🔥 外层呼吸 */
   background: #ffffff;
   border-radius: 16px;          /* 🔥 整体圆角 */
@@ -119,6 +119,7 @@ body{
   display: flex;
   /* padding: 12px;                 ✅ 加这一行 */
   box-sizing: border-box;
+  min-height: 0; 
 }
 /* ==================== */
 /* ===== SideBar ===== */
@@ -131,7 +132,9 @@ body{
 }
 
 #sidebar {
-
+  width: 280px;        /* 🔥 给一个明确锚点 */
+  min-width: 280px;
+  flex-shrink: 0;
   background: #fff;
 
   display: flex;
