@@ -567,7 +567,7 @@ select:focus{
 }
 .map-legend {
   position: absolute;
-  right: 16px;
+  right: 42px;
   bottom: 16px;
   z-index: 1000;  
   background: #fff;
