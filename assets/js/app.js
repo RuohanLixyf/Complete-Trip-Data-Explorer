@@ -438,12 +438,40 @@ let currentViewBounds = null;
   /* =========================
      Load sample JSON
   ========================= */
-  async function loadSampleTrips() {
-    const res = await fetch("data/samples/samples_center2air.json");
-    if (!res.ok) throw new Error("Failed to load samples.json");
-    const json = await res.json();
-    return json.linked_trips;   // 🔴 CHANGED
+  async function loadSamplesByOD(originTract, destinationTract) {
+    const filename = `${originTract}_to_${destinationTract}.json`;
+    const url = `data/samples/${filename}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Sample file not found: ${url}`);
+
+    return await res.json();
   }
+  async function applyODSelection() {
+    const o = document.getElementById("originTract").value;
+    const d = document.getElementById("destinationTract").value;
+
+    if (!o || !d) return;
+
+    try {
+      const json = await loadSamplesByOD(o, d);
+
+      // 清理旧图层
+      layers.odPolygon.clearLayers();
+      layers.tripRoute.clearLayers();
+
+      // 绘制新数据
+      drawODPolygon(json.od);
+      drawSampleTrips(json.linked_trips);
+
+      const status = document.getElementById("mapStatus");
+      if (status) status.innerText = `Loaded OD: ${o} → ${d}`;
+    } catch (e) {
+      console.error(e);
+      alert(`No sample file for OD: ${o} → ${d}`);
+    }
+  }
+
   async function loadODFlows() {
     const res = await fetch("data/OD/od_dashboard_topk.json");
     if (!res.ok) throw new Error("Failed to load OD JSON");
@@ -475,7 +503,8 @@ let currentViewBounds = null;
     const filtered = filterTripsByOD(allTrips, o, d);
     drawSampleTrips(filtered);
   }
-
+  document.getElementById("originTract").addEventListener("change", applyODSelection);
+  document.getElementById("destinationTract").addEventListener("change", applyODSelection);
 
   /* =========================
      Init
@@ -500,16 +529,9 @@ let currentViewBounds = null;
     });
 
     // ===== Load samples =====
-    try {
-      const res = await fetch("data/samples/samples_center2air.json");
-      const json = await res.json();
 
-      drawODPolygon(json.od);                 // 🆕 新增
-      drawSampleTrips(json.linked_trips);     // 原逻辑
+    applyODSelection(); // 用当前下拉框默认值加载
 
-    } catch (e) {
-      console.error("loadSampleTrips failed", e);
-    }
     // document.querySelector('[data-view="samples"]').addEventListener("click", () => {
     //   toggleSamples();
     // });
