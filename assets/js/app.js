@@ -464,19 +464,14 @@ let currentViewBounds = null;
     }
 
     try {
-      const json = await loadSamplesByOD(o, d);
-      // ✅ 原有：加载 sample、画地图（保持不变）
-      const sample = await loadSamplesByOD(o, d);
-      
-      // ✅ 新增：加载并渲染 stats
+      const sampleJson = await loadSamplesByOD(o, d);
       const stats = await loadStatsForOD(o, d);
       
       layers.odPolygon.clearLayers();
       layers.tripRoute.clearLayers();
 
-      drawODPolygon(json.od);
-      drawSampleTrips(json.linked_trips);
-      renderSampleOnMap(sample);
+      drawODPolygon(sampleJson.od);
+      drawSampleTrips(sampleJson.linked_trips);
       renderStats(stats);
 
       setMapStatus(`Loaded OD: ${o} → ${d}`, "info");
