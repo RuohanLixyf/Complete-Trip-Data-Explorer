@@ -451,25 +451,50 @@ let currentViewBounds = null;
     const o = document.getElementById("originTract").value;
     const d = document.getElementById("destinationTract").value;
 
-    if (!o || !d) return;
+    // 1️⃣ 未选全，不提示（安静）
+    if (!o || !d) {
+      setMapStatus("Select an origin and destination census tract");
+      return;
+    }
+
+    // 2️⃣ O = D（这是逻辑错误，不是异常）
+    if (o === d) {
+      setMapStatus("Origin and destination cannot be the same", "warn");
+      return;
+    }
 
     try {
       const json = await loadSamplesByOD(o, d);
 
-      // 清理旧图层
       layers.odPolygon.clearLayers();
       layers.tripRoute.clearLayers();
 
-      // 绘制新数据
       drawODPolygon(json.od);
       drawSampleTrips(json.linked_trips);
 
-      const status = document.getElementById("mapStatus");
-      if (status) status.innerText = `Loaded OD: ${o} → ${d}`;
+      setMapStatus(`Loaded OD: ${o} → ${d}`, "info");
+
     } catch (e) {
-      console.error(e);
-      alert(`No sample file for OD: ${o} → ${d}`);
+      console.warn(e);
+      setMapStatus(`No sample data for OD: ${o} → ${d}`, "error");
     }
+  }
+
+  function setMapStatus(message, type = "info") {
+    const el = document.getElementById("mapStatus");
+    if (!el) return;
+
+    el.innerText = message;
+
+    el.style.borderColor =
+      type === "error" ? "#ef4444" :
+      type === "warn" ? "#f59e0b" :
+      "#d0d7e6";
+
+    el.style.color =
+      type === "error" ? "#b91c1c" :
+      type === "warn" ? "#92400e" :
+      "#222";
   }
 
   async function loadODFlows() {
