@@ -107,13 +107,25 @@ body{
   display: flex;
   height: calc(100vh - var(--topbar-h));
 }
+/* ==================== */
+/* ===== SideBar ===== */
+/* ==================== */
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #0A2A66;
+}
 
 #sidebar {
   width: 260px;
   min-width: 240px;
   padding: 0;
+
   display: flex;
   flex-direction: column;
+  height: 100%;                /* 🔥 必须 */
+
   border-right: 1px solid #e5e7eb;
 }
 .sidebar-top {
@@ -126,14 +138,11 @@ body{
   top: 0;
   z-index: 10;
 }
-#sidebar {
-  display: flex;
-  flex-direction: column;
-}
 
 .sidebar-content {
-  flex: 1 1 auto;
-  overflow-y: auto;   /* 🔑 只有 filter 区滚动 */
+  flex: 1 1 auto;        /* 🔥 吃掉剩余高度 */
+  overflow-y: auto;      /* 只有这里滚 */
+  padding: 14px 12px;
 }
 
 .sidebar-footer {
@@ -178,17 +187,6 @@ body{
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-.sidebar-bottom {
-  padding: 14px 12px;
-  overflow-y: auto;
-}
-
-.sidebar-title {
-  font-size: 13px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  color: #0A2A66;
 }
 
 .lens-btn {
@@ -461,7 +459,7 @@ select:focus{
 }
 /* ===== Basemap Toggle (Sidebar Bottom) ===== */
 .basemap-toggle {
-  margin-top: auto;              /* 🔥 推到底部 */
+  flex-shrink: 0;               /* 🔥 不被压缩 */
   padding: 8px 10px;
   border-top: 1px solid #eef1f7;
 
@@ -470,8 +468,10 @@ select:focus{
   gap: 6px;
 
   font-size: 11px;
-  color: #555;
+  color: #444;
+  background: #fafbff;
 }
+
 
 .basemap-toggle .label {
   margin-right: 4px;
