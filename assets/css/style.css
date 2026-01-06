@@ -5,7 +5,7 @@
   --bg-soft:#f6f8ff;
   --text:#333;
   --muted:#555;
-  --topbar-h: 56px;
+  --topbar-h: 58px;
 }
 /* ===== Global ===== */
 html, body {
@@ -49,9 +49,9 @@ body{
 
 #app-shell {
   height: 100%;          /* ← 关键 */
-  margin: 4px;
+  margin: 0px;
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 
@@ -106,10 +106,10 @@ body{
 
 .villanova-logo {
   display: block; 
-  height: 34px;
-  padding: 5px;     /* 关键：增大内边距 */
+  height: 30px;
+  padding: 2px 3px;     /* 关键：增大内边距 */
   opacity: .95;
-  border-radius: 6px;
+  border-radius: 3px;
   background: #fff; /* 如果你希望白框可见，必须加 */
 }
 
@@ -117,7 +117,7 @@ body{
 #layout {
   flex: 1; 
   display: flex;
-  /* padding: 12px;                 ✅ 加这一行 */
+  padding: 0 12px;
   box-sizing: border-box;
   min-height: 0; 
 }
