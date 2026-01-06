@@ -49,7 +49,7 @@ body{
 
 #app-shell {
   height: calc(100vh - 24px);
-  margin: 12px;                 /* 🔥 外层呼吸 */
+  margin: 4px;                 /* 🔥 外层呼吸 */
   background: #ffffff;
   border-radius: 16px;          /* 🔥 整体圆角 */
   overflow: hidden;             /* 🔥 圆角裁切内部 */
@@ -65,7 +65,7 @@ body{
   align-items: center;
   justify-content: space-between;
 
-  padding: 0px 18px;
+  padding: 0px 10px;
   background: var(--nova-deep);
   color: #fff;
 }
@@ -141,7 +141,7 @@ body{
   flex-direction: column;
 }
 .sidebar-top {
-  padding: 10px 12px;
+  padding: 6px 8px;
   border-bottom: 1px solid #eef1f7;
   background: #fafbff;
 }
@@ -154,12 +154,12 @@ body{
 .sidebar-content {
   flex: 1 1 auto;        /* 🔥 吃掉剩余高度 */
   overflow-y: auto;      /* 只有这里滚 */
-  padding: 14px 12px;
+  padding: 8px 8px;
 }
 
 .sidebar-footer {
   flex-shrink: 0;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-top: 1px solid #eef1f7;
 
   display: flex;
