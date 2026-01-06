@@ -83,13 +83,19 @@
         </div>
         
         <div class="form-row">
-          <label>Census Tract</label>
-          <select>
-            <option value="all">All</option>
-            <option value="all">1111</option>
-            <!-- 之后你可以用 JS 动态填充 -->
+          <label>Origin Census Tract</label>
+          <select id="originTract">
+            <option value="">Select origin…</option>
           </select>
         </div>
+
+        <div class="form-row">
+          <label>Destination Census Tract</label>
+          <select id="destinationTract">
+            <option value="">Select destination…</option>
+          </select>
+        </div>
+
         <div class="form-row">
           <label>Mode</label>
 
@@ -138,7 +144,7 @@
       </div>
       
       <!-- Basemap toggle (bottom) -->
-      <div class="basemap-toggle">
+      <div class="sidebar-footer">
         <span class="label">Map</span>
         <button class="bm-btn active" data-basemap="light">Light</button>
         <button class="bm-btn" data-basemap="dark">Dark</button>

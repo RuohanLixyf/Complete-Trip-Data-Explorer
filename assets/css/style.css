@@ -126,6 +126,29 @@ body{
   top: 0;
   z-index: 10;
 }
+#sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-content {
+  flex: 1 1 auto;
+  overflow-y: auto;   /* 🔑 只有 filter 区滚动 */
+}
+
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-top: 1px solid #eef1f7;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 11px;
+  color: #444;
+  background: #fafbff;
+}
 
 .view-grid {
   display: grid;

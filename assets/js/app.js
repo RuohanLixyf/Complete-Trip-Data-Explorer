@@ -248,6 +248,14 @@ let currentViewBounds = null;
       layers.tripRoute.removeFrom(map);
     }
   }
+  function filterTripsByOD(trips, originTract, destinationTract) {
+    if (!originTract || !destinationTract) return [];
+
+    return trips.filter(t =>
+      t.origin_tract === originTract &&
+      t.destination_tract === destinationTract
+    );
+  }
   function drawODFlows(odData, options = {}) {
     const {
       month = null,
@@ -454,6 +462,19 @@ let currentViewBounds = null;
         else map.removeLayer(layer);
       });
     });
+    
+  document.getElementById("originTract").addEventListener("change", applyODFilter);
+  document.getElementById("destinationTract").addEventListener("change", applyODFilter);
+
+  function applyODFilter() {
+    const o = document.getElementById("originTract").value;
+    const d = document.getElementById("destinationTract").value;
+
+    if (!o || !d) return;
+
+    const filtered = filterTripsByOD(allTrips, o, d);
+    drawSampleTrips(filtered);
+  }
 
 
   /* =========================
