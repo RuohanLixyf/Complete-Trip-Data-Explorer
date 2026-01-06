@@ -106,6 +106,8 @@ body{
 #layout {
   display: flex;
   height: calc(100vh - var(--topbar-h));
+  padding: 12px;                 /* ✅ 加这一行 */
+  box-sizing: border-box;
 }
 /* ==================== */
 /* ===== SideBar ===== */
