@@ -99,10 +99,18 @@
           <div class="form-row">
             <label>Facilities</label>
             <div class="facility-list">
-              <label class="check-item"><input type="checkbox"> Bus Stop</label>
-              <label class="check-item"><input type="checkbox"> Bus Route</label>
-              <label class="check-item"><input type="checkbox"> Rail Stop</label>
-              <label class="check-item"><input type="checkbox"> Rail Route</label>
+              <label class="check-item">
+                <input type="checkbox" data-layer="bus_stop"> Bus Stop
+              </label>
+              <label class="check-item">
+                <input type="checkbox" data-layer="bus_route"> Bus Route
+              </label>
+              <label class="check-item">
+                <input type="checkbox" data-layer="rail_stop"> Rail Stop
+              </label>
+              <label class="check-item">
+                <input type="checkbox" data-layer="rail_route"> Rail Route
+              </label>
             </div>
           </div>
 
@@ -111,8 +119,8 @@
         <!-- 固定底部 -->
         <div class="sidebar-footer">
           <span class="label">Map</span>
-          <button class="bm-btn active">Light</button>
-          <button class="bm-btn">Dark</button>
+          <button class="bm-btn active" data-basemap="light">Light</button>
+          <button class="bm-btn" data-basemap="dark">Dark</button>
         </div>
 
       </aside>
