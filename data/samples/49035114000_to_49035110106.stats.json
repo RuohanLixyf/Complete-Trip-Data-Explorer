@@ -1,0 +1,16 @@
+{
+  "schema": "nova.complete_trip.od_stats.v1",
+  "generated_at": "2026-01-06T22:19:10.471105Z",
+  "od": {
+    "origin": "49035114000",
+    "destination": "49035110106"
+  },
+  "coverage": {
+    "temporal": "year-2020",
+    "spatial": "Salt Lake 6-county"
+  },
+  "counts": {
+    "linked_trips": 0
+  },
+  "note": "No valid complete trips (linked_trip with >=2 legs) after filtering"
+}

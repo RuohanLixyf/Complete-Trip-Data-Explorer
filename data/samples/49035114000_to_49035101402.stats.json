@@ -1,0 +1,33 @@
+{
+  "schema": "nova.complete_trip.od_stats.v1",
+  "generated_at": "2026-01-06T22:20:34.274452Z",
+  "od": {
+    "origin": "49035114000",
+    "destination": "49035101402"
+  },
+  "coverage": {
+    "temporal": "year-2020",
+    "spatial": "Salt Lake 6-county"
+  },
+  "counts": {
+    "linked_trips": 3
+  },
+  "trip_duration_min": {
+    "min": 18.5,
+    "p25": 30.59166666666667,
+    "median": 42.68333333333334,
+    "p75": 46.050000000000004,
+    "max": 49.41666666666667
+  },
+  "transfers": {
+    "avg": 1.0,
+    "p75": 1,
+    "max": 1
+  },
+  "mode_involvement": {
+    "car": 0.0,
+    "bus": 0.3333333333333333,
+    "rail": 1.0,
+    "walk": 0.0
+  }
+}

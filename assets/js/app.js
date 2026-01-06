@@ -465,12 +465,19 @@ let currentViewBounds = null;
 
     try {
       const json = await loadSamplesByOD(o, d);
-
+      // ✅ 原有：加载 sample、画地图（保持不变）
+      const sample = await loadSamplesByOD(o, d);
+      
+      // ✅ 新增：加载并渲染 stats
+      const stats = await loadStatsForOD(o, d);
+      
       layers.odPolygon.clearLayers();
       layers.tripRoute.clearLayers();
 
       drawODPolygon(json.od);
       drawSampleTrips(json.linked_trips);
+      renderSampleOnMap(sample);
+      renderStats(stats);
 
       setMapStatus(`Loaded OD: ${o} → ${d}`, "info");
 
@@ -478,6 +485,47 @@ let currentViewBounds = null;
       console.warn(e);
       setMapStatus(`No sample data for OD: ${o} → ${d}`, "error");
     }
+  }
+  async function loadStatsForOD(origin, destination) {
+    const filename = `${origin}_to_${destination}.stats.json`;
+    const url = `data/samples/${filename}`;
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn("Stats file not found:", url);
+      return null;
+    }
+    return await res.json();
+  }
+  function renderStats(stats) {
+    if (!stats) {
+      document.getElementById("statsTrips").textContent =
+        "No statistics available for this OD.";
+      return;
+    }
+
+    // 1️⃣ Trip count
+    document.getElementById("statsTrips").textContent =
+      `Complete trips: ${stats.counts.linked_trips}`;
+
+    // 2️⃣ Duration
+    const d = stats.trip_duration_min;
+    document.getElementById("statsDuration").textContent =
+      `Travel time (min): median ${d.median.toFixed(1)} `
+      + `(IQR ${d.p25.toFixed(1)}–${d.p75.toFixed(1)})`;
+
+    // 3️⃣ Transfers
+    const t = stats.transfers;
+    document.getElementById("statsTransfers").textContent =
+      `Transfers: avg ${t.avg.toFixed(1)}, max ${t.max}`;
+
+    // 4️⃣ Mode involvement
+    const m = stats.mode_involvement;
+    document.getElementById("statsModes").textContent =
+      `Mode involvement: `
+      + `Car ${(m.car * 100).toFixed(0)}%, `
+      + `Rail ${(m.rail * 100).toFixed(0)}%, `
+      + `Bus ${(m.bus * 100).toFixed(0)}%`;
   }
 
   function setMapStatus(message, type = "info") {
@@ -527,6 +575,10 @@ let currentViewBounds = null;
 
     const filtered = filterTripsByOD(allTrips, o, d);
     drawSampleTrips(filtered);
+    
+    // 2️⃣ 新增逻辑：OD → stats.json → stats panel
+    const stats = await loadStatsForOD(o, d);
+    renderStats(stats);
   }
   document.getElementById("originTract").addEventListener("change", applyODSelection);
   document.getElementById("destinationTract").addEventListener("change", applyODSelection);
