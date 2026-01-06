@@ -76,10 +76,11 @@ body{
   opacity: 0.95;
 }
 .lab-wordmark .page-subtitle {
-  font-size: 11px;        /* 更小 */
+  font-size: 12px;        /* 更小 */
   font-weight: 400;      /* 不加粗 */
   color: #cfe3ff;
   opacity: 0.75;         /* 再弱一点 */
+  white-space: nowrap;
 }
 .lab-wordmark .sep {
   margin: 0 6px;
