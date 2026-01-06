@@ -77,16 +77,16 @@ let currentViewBounds = null;
     if (!od?.origin?.geometry || !od?.destination?.geometry) return;
 
     const originStyle = {
-      color: "#2563eb",        // blue
+      color: "#22c55e",        // blue
       weight: 2,
-      fillColor: "#2563eb",
+      fillColor: "#22c55e",
       fillOpacity: 0.15
     };
 
     const destStyle = {
-      color: "#dc2626",        // red
+      color: "#ef4444",        // red
       weight: 2,
-      fillColor: "#dc2626",
+      fillColor: "#ef4444",
       fillOpacity: 0.15
     };
 
