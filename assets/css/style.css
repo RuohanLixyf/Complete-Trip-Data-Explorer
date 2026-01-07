@@ -788,11 +788,82 @@ select:focus{
 
   /* stats / legend 稍微缩小 */
   .stats-panel {
+    top: 8px;
+    right: 8px;
+    min-width: 160px;
     max-width: 180px;
+
+    padding: 6px 8px;
+    font-size: 10.5px;
+    line-height: 1.3;
+  }
+
+  .stats-title {
     font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  #travelTimeChart {
+    width: 160px;
+    height: 90px;
+    padding-top: 4px;
   }
 
   .map-legend {
+    left: 8px;
+    right: auto;
+    bottom: 8px;
+
+    min-width: unset;
+    padding: 6px 8px;
+    font-size: 10.5px;
+  }
+
+  .map-legend .legend-title {
     font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .map-legend .legend-row {
+    margin: 2px 0;
+    gap: 6px;
+  }
+
+  .map-legend .swatch.line {
+    width: 16px;
+    height: 2px;
+  }
+
+  .map-legend .dot {
+    width: 8px;
+    height: 8px;
+  }  .map-legend {
+    left: 8px;
+    right: auto;
+    bottom: 8px;
+
+    min-width: unset;
+    padding: 6px 8px;
+    font-size: 10.5px;
+  }
+
+  .map-legend .legend-title {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .map-legend .legend-row {
+    margin: 2px 0;
+    gap: 6px;
+  }
+
+  .map-legend .swatch.line {
+    width: 16px;
+    height: 2px;
+  }
+
+  .map-legend .dot {
+    width: 8px;
+    height: 8px;
   }
 }
