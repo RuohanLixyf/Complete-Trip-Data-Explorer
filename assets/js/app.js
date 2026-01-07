@@ -504,6 +504,21 @@ let currentViewBounds = null;
 
     const barW = w / counts.length;
 
+    // Title
+    ctx.save();
+    ctx.fillStyle = "#111";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Travel Time Distribution", w / 2, 10);
+    ctx.restore();
+    // y-label
+    ctx.save();
+    ctx.fillStyle = "#555";
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Trips", 2, padTop + 10);
+    ctx.restore();
+
     // Bars
     ctx.fillStyle = "rgba(59,130,246,0.75)";
     counts.forEach((c, i) => {
@@ -513,6 +528,20 @@ let currentViewBounds = null;
       ctx.fillRect(x, y, Math.max(1, barW - 2), barH);
     });
 
+    // X axis
+    ctx.save();
+    ctx.strokeStyle = "#999";
+    ctx.beginPath();
+    ctx.moveTo(0, padTop + chartH);
+    ctx.lineTo(w, padTop + chartH);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle = "#555";
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Travel Time (minutes)", w / 2, h - 2);
+    ctx.restore();
     // helper: minutes -> x pixel
     function timeToX(t) {
       const minT = edges[0];
@@ -521,7 +550,7 @@ let currentViewBounds = null;
       return ((clamped - minT) / (maxT - minT)) * w;
     }
 
-    function drawVerticalLine(x, label, color) {
+    function drawVerticalLine(x, label, color, labelYOffset = 0) {
       ctx.save();
       ctx.strokeStyle = color;
       ctx.setLineDash([4, 3]);
@@ -533,25 +562,53 @@ let currentViewBounds = null;
 
       ctx.fillStyle = color;
       ctx.font = "10px sans-serif";
-      ctx.fillText(label, x + 4, 12);
+      ctx.fillText(label, x + 4, 12 + labelYOffset);
       ctx.restore();
     }
 
+    const xMedian = Number.isFinite(durStats.median)
+      ? timeToX(durStats.median)
+      : null;
+
+    const xMean = Number.isFinite(durStats.mean)
+      ? timeToX(durStats.mean)
+      : null;
+
+    const LINE_GAP_PX = 8;
+
     // Mean / Median lines
-    if (durStats && Number.isFinite(durStats.median)) {
+    if (xMedian !== null && xMean !== null && Math.abs(xMedian - xMean) < LINE_GAP_PX) {
+      // 重叠：label 上下错开
       drawVerticalLine(
-        timeToX(durStats.median),
+        xMedian,
         `Median ${durStats.median.toFixed(1)}`,
-        "#2563eb"
+        "#eb253cff",
+        0
       );
-    }
-    if (durStats && Number.isFinite(durStats.mean)) {
       drawVerticalLine(
-        timeToX(durStats.mean),
+        xMean,
         `Mean ${durStats.mean.toFixed(1)}`,
-        "#f59e0b"
+        "#f59e0b",
+        12
       );
+    } else {
+      // 不重叠：正常画
+      if (xMedian !== null) {
+        drawVerticalLine(
+          xMedian,
+          `Median ${durStats.median.toFixed(1)}`,
+          "#eb253cff"
+        );
+      }
+      if (xMean !== null) {
+        drawVerticalLine(
+          xMean,
+          `Mean ${durStats.mean.toFixed(1)}`,
+          "#f59e0b"
+        );
+      }
     }
+
   }
 
 
