@@ -477,38 +477,92 @@ let currentViewBounds = null;
     }
     return await res.json();
   }
-  function renderTravelTimeHistogram(hist) {
-    if (!hist) return;
-
+  function renderTravelTimeHistogram(hist, durStats) {
     const canvas = document.getElementById("travelTimeChart");
     if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
-
-    const counts = hist.counts;
-    const maxCount = Math.max(...counts);
-
     const w = canvas.width;
     const h = canvas.height;
-    const barW = w / counts.length;
 
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#3b82f6";
 
+    if (!hist || !hist.counts || hist.counts.length === 0) {
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "#444";
+      ctx.fillText("No distribution available.", 6, 18);
+      return;
+    }
+
+    const counts = hist.counts;
+    const edges = hist.bin_edges_min;
+
+    const maxCount = Math.max(...counts, 1);
+    const padTop = 14;
+    const padBottom = 16;
+    const chartH = h - padTop - padBottom;
+
+    const barW = w / counts.length;
+
+    // Bars
+    ctx.fillStyle = "rgba(59,130,246,0.75)";
     counts.forEach((c, i) => {
-      const barH = (c / maxCount) * (h - 10);
-      ctx.fillRect(
-        i * barW + 1,
-        h - barH,
-        barW - 2,
-        barH
-      );
+      const barH = (c / maxCount) * chartH;
+      const x = i * barW + 1;
+      const y = padTop + (chartH - barH);
+      ctx.fillRect(x, y, Math.max(1, barW - 2), barH);
     });
+
+    // helper: minutes -> x pixel
+    function timeToX(t) {
+      const minT = edges[0];
+      const maxT = edges[edges.length - 1];
+      const clamped = Math.max(minT, Math.min(maxT, t));
+      return ((clamped - minT) / (maxT - minT)) * w;
+    }
+
+    function drawVerticalLine(x, label, color) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, padTop);
+      ctx.lineTo(x, padTop + chartH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = color;
+      ctx.font = "10px sans-serif";
+      ctx.fillText(label, x + 4, 12);
+      ctx.restore();
+    }
+
+    // Mean / Median lines
+    if (durStats && Number.isFinite(durStats.median)) {
+      drawVerticalLine(
+        timeToX(durStats.median),
+        `Median ${durStats.median.toFixed(1)}`,
+        "#2563eb"
+      );
+    }
+    if (durStats && Number.isFinite(durStats.mean)) {
+      drawVerticalLine(
+        timeToX(durStats.mean),
+        `Mean ${durStats.mean.toFixed(1)}`,
+        "#f59e0b"
+      );
+    }
   }
+
 
   function renderStats(stats) {
     if (!stats) {
       document.getElementById("statsTrips").textContent =
         "No statistics available for this OD.";
+
+      const canvas = document.getElementById("travelTimeChart");
+      if (canvas) canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+
       return;
     }
 
@@ -534,7 +588,10 @@ let currentViewBounds = null;
       + `Car ${(m.car * 100).toFixed(0)}%, `
       + `Rail ${(m.rail * 100).toFixed(0)}%, `
       + `Bus ${(m.bus * 100).toFixed(0)}%`;
-    renderTravelTimeHistogram(stats.travel_time_distribution);
+    renderTravelTimeHistogram(
+      stats.travel_time_distribution,
+      stats.trip_duration_min
+    );
 
   }
 

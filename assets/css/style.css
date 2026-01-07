@@ -272,6 +272,15 @@ body{
   line-height: 1.4;
 }
 
+#travelTimeChart {
+  display: block;
+  width: 260px;
+  height: 120px;
+  margin-top: 6px;
+  border-top: 1px solid #eef1f7;
+  padding-top: 6px;
+}
+
 /* ===== Cards / UI ===== */
 .card{
   background:#fff;
