@@ -619,10 +619,18 @@ let currentViewBounds = null;
       left: xMean + 4,
       right: xMean + 4 + meanTextW
     };
+    const boxesOverlap =
+      medianBox.left < meanBox.right &&
+      medianBox.right > meanBox.left;
+
     const LINE_GAP_PX = 12;
 
     // Mean / Median lines
-    if (xMedian !== null && xMean !== null && boxesOverlap) {
+    if (
+      Number.isFinite(xMedian) &&
+      Number.isFinite(xMean) &&
+      boxesOverlap === true
+    ) {
       // 情况 1：label box 重叠 → 左右分开
       drawVerticalLine(
         xMedian,
