@@ -867,3 +867,29 @@ select:focus{
     height: 8px;
   }
 }
+@media (max-width: 768px) {
+
+  .top-bar {
+    padding: 0 8px;
+  }
+
+  .lab-wordmark .brand {
+    font-size: 16px;
+  }
+
+  .lab-wordmark .page-title {
+    font-size: 14px;
+  }
+
+  .lab-wordmark {
+    gap: 4px;
+  }
+
+}
+@media (max-width: 768px) {
+
+  .lab-wordmark .page-subtitle {
+    display: none;
+  }
+
+}
