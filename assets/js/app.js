@@ -329,24 +329,24 @@ let currentViewBounds = null;
       map.setView([40.758, -111.89], 12);
     }
   }
-  const RecenterControl = L.Control.extend({
-    options: { position: "topright" },
+  // const RecenterControl = L.Control.extend({
+  //   options: { position: "topright" },
 
-    onAdd: function () {
-      const btn = L.DomUtil.create("button", "recenter-btn");
-      btn.innerHTML = "⌖";
-      btn.title = "Recenter map";
+  //   onAdd: function () {
+  //     const btn = L.DomUtil.create("button", "recenter-btn");
+  //     btn.innerHTML = "⌖";
+  //     btn.title = "Recenter map";
 
-      btn.onclick = e => {
-        e.stopPropagation();
-        recenterMap();
-      };
+  //     btn.onclick = e => {
+  //       e.stopPropagation();
+  //       recenterMap();
+  //     };
 
-      return btn;
-    }
-  });
+  //     return btn;
+  //   }
+  // });
 
-  map.addControl(new RecenterControl());
+  // map.addControl(new RecenterControl());
 
 
   /* =========================
