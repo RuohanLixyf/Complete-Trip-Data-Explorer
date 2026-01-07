@@ -575,6 +575,7 @@ let currentViewBounds = null;
 
       // ===== 垂直线 =====
       ctx.strokeStyle = color;
+      ctx.lineWidth = 2;    
       ctx.setLineDash([4, 3]);
       ctx.beginPath();
       ctx.moveTo(x, padTop);
@@ -604,7 +605,18 @@ let currentViewBounds = null;
 
       ctx.restore();
     }
-
+    function drawVerticalLineOnly(x, color) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;          // 👈 关键：调粗
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, padTop);
+      ctx.lineTo(x, padTop + chartH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
 
 
     const xMedian = Number.isFinite(durStats.median)
@@ -622,11 +634,9 @@ let currentViewBounds = null;
 
 
     if (Number.isFinite(xMedian)) {
-      drawVerticalLineSafe(
+      drawVerticalLineOnly(
         xMedian,
-        `Median ${durStats.median.toFixed(1)}`,
-        "#eb253cff",
-        0
+        "#eb253cff"
       );
     }
 
