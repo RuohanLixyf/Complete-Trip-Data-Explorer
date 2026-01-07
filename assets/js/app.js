@@ -67,7 +67,7 @@ let currentViewBounds = null;
     accessEgress: L.layerGroup().addTo(map),
     tdi: L.geoJSON(null).addTo(map)
   };
-  let samplesVisible = true;
+
   /* =========================
      Draw OD
   ========================= */
@@ -239,23 +239,8 @@ let currentViewBounds = null;
       });
     });
   });
-  function toggleSamples() {
-    samplesVisible = !samplesVisible;
 
-    if (samplesVisible) {
-      layers.tripRoute.addTo(map);
-    } else {
-      layers.tripRoute.removeFrom(map);
-    }
-  }
-  function filterTripsByOD(trips, originTract, destinationTract) {
-    if (!originTract || !destinationTract) return [];
 
-    return trips.filter(t =>
-      t.origin_tract === originTract &&
-      t.destination_tract === destinationTract
-    );
-  }
   function drawODFlows(odData, options = {}) {
     const {
       month = null,
