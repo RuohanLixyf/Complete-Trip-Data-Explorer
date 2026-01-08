@@ -900,3 +900,7 @@ select:focus{
   }
 
 }
+
+.leaflet-interactive:focus {
+  outline: none !important;
+}
