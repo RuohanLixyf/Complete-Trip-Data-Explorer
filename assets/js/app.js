@@ -147,7 +147,7 @@ let currentViewBounds = null;
           leg.mode === "rail" ? "#e23c1bff"
           : leg.mode === "bus" ? "rgba(37,166,235,1)"
           : leg.mode === "car" ? "#391b57ff"
-          : leg.mode === "walk_bike" ? "#15c856ff"
+          : leg.mode === "walk/bike" ? "#15c856ff"
           : "#6b7280";
 
         const line = L.polyline(leg.route, {
