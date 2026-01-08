@@ -107,8 +107,27 @@ let currentViewBounds = null;
      Draw sample trips
   ========================= */
   let activeLinkedTripId = null;
+  let selectedTripId = null;
   const linkedTripLayers = new Map();   // linked_trip_id → LayerGroup
 
+  function buildTripSummary(lt) {
+    const totalDistance = (lt.legs || [])
+      .reduce((s, l) => s + (l.distance_km || 0), 0);
+
+    const totalDuration = (lt.legs || [])
+      .reduce((s, l) => s + (l.duration_min || 0), 0);
+
+    return {
+      id: lt.linked_trip_id,
+      origin: lt.origin?.tract || "Origin",
+      destination: lt.destination?.tract || "Destination",
+      startTime: lt.start_time,
+      endTime: lt.end_time,
+      segments: (lt.legs || []).length,
+      distanceKm: totalDistance.toFixed(2),
+      durationMin: totalDuration.toFixed(1)
+    };
+  }
   function drawSampleTrips(linkedTrips) {
     layers.tripRoute.clearLayers();
     linkedTripLayers.clear();
@@ -121,22 +140,42 @@ let currentViewBounds = null;
 
       // 1) origin marker
       if (lt.origin && Number.isFinite(Number(lt.origin.lat)) && Number.isFinite(Number(lt.origin.lon))) {
-        L.circleMarker([Number(lt.origin.lat), Number(lt.origin.lon)], {
-          radius: 7,
-          color: "#22c55e",
-          fillColor: "#22c55e",
-          fillOpacity: 1
-        }).bindPopup("Origin").addTo(group);
+        const originMarker = L.circleMarker(
+          [Number(lt.origin.lat), Number(lt.origin.lon)],
+          {
+            radius: 7,
+            color: "#22c55e",
+            fillColor: "#22c55e",
+            fillOpacity: 1
+          }
+        ).addTo(group);
+
+        originMarker.bindPopup(
+          `<b>Start</b><br>${lt.start_time}`
+        );
+
+        group._originMarker = originMarker;
+
       }
 
       // 2) destination marker
       if (lt.destination && Number.isFinite(Number(lt.destination.lat)) && Number.isFinite(Number(lt.destination.lon))) {
-        L.circleMarker([Number(lt.destination.lat), Number(lt.destination.lon)], {
-          radius: 7,
-          color: "#ef4444",
-          fillColor: "#ef4444",
-          fillOpacity: 1
-        }).bindPopup("Destination").addTo(group);
+        const destMarker = L.circleMarker(
+          [Number(lt.destination.lat), Number(lt.destination.lon)],
+          {
+            radius: 7,
+            color: "#ef4444",
+            fillColor: "#ef4444",
+            fillOpacity: 1
+          }
+        ).addTo(group);
+
+        destMarker.bindPopup(
+          `<b>End</b><br>${lt.end_time}`
+        );
+
+        group._destMarker = destMarker;
+
       }
 
       // 3) legs
@@ -155,6 +194,50 @@ let currentViewBounds = null;
           weight: 3,
           opacity: 0.85
         }).addTo(group).bringToFront();
+
+        // Trip-level summary（只绑定一次）
+        if (!group._summaryBound) {
+          const summary = buildTripSummary(lt);
+
+          line.bindTooltip(
+            `
+            <b>Trip summary</b><br>
+            ${summary.origin} → ${summary.destination}<br>
+            Distance: ${summary.distanceKm} km<br>
+            Time: ${summary.durationMin} min<br>
+            Segments: ${summary.segments}<br>
+            ${summary.startTime} – ${summary.endTime}
+            `,
+            {
+              sticky: true,
+              direction: "top",
+              opacity: 0.95
+            }
+          );
+
+        // Segment-level tooltip（每一段都有）
+        line.bindTooltip(
+          `
+          Segment<br>
+          Mode: ${leg.mode}<br>
+          Distance: ${leg.distance_km} km<br>
+          Time: ${leg.duration_min} min
+          `,
+          { sticky: false, permanent: false }
+          
+        );
+        line.on("mouseover", () => {
+          if (selectedTripId !== lt.linked_trip_id) return;
+          line.openTooltip();
+        });
+
+        line.on("mouseout", () => {
+          line.closeTooltip();
+        });
+
+
+          group._summaryBound = true;
+        }
 
         line.on("click", (e) => {
           L.DomEvent.stopPropagation(e);
@@ -193,9 +276,11 @@ let currentViewBounds = null;
   }
 
 
+
+
   function highlightLinkedTrip(targetId) {
     activeLinkedTripId = targetId;
-
+    selectedTripId = targetId;
     linkedTripLayers.forEach((group, id) => {
       group.eachLayer(layer => {
         if (id === targetId) {
@@ -221,9 +306,15 @@ let currentViewBounds = null;
         }
       });
     });
+    const group = linkedTripLayers.get(targetId);
+    if (group && group._originMarker) {
+      group._originMarker.openPopup();
+    }
+
   }
   map.on("click", () => {
     activeLinkedTripId = null;
+    selectedTripId = null;
     linkedTripLayers.forEach(group => {
       group.eachLayer(layer => {
         if (layer.setStyle) {
