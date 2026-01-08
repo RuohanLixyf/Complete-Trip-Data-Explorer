@@ -225,11 +225,11 @@ let currentViewBounds = null;
             Segments: ${summary.segments}<br>
             ${summary.startTime} – ${summary.endTime}
             `,
-            {
-              sticky: true,
-              direction: "top",
-              opacity: 0.95
-            }
+            // {
+            //   sticky: true,
+            //   direction: "top",
+            //   opacity: 0.95
+            // }
           );
 
           group._summaryBound = true;
