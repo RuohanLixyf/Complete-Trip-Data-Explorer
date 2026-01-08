@@ -695,10 +695,11 @@ let currentViewBounds = null;
     // 4️⃣ Mode involvement
     const m = stats.mode_involvement;
     document.getElementById("statsModes").textContent =
-      `Mode involvement: `
-      + `Car ${(m.car * 100).toFixed(0)}%, `
-      + `Rail ${(m.rail * 100).toFixed(0)}%, `
-      + `Bus ${(m.bus * 100).toFixed(0)}%`;
+      `Mode share: `
+      + `Car ${(m.car * 100).toFixed(1)}%, `
+      + `Rail ${(m.rail * 100).toFixed(1)}%, `
+      + `Bus ${(m.bus * 100).toFixed(1)}%, `
+      + `Walk/bike ${(m.walk * 100).toFixed(1)}%`;
     renderTravelTimeHistogram(
       stats.travel_time_distribution,
       stats.trip_duration_min
