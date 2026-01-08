@@ -150,10 +150,17 @@ let currentViewBounds = null;
           }
         ).addTo(group);
 
-        originMarker.bindPopup(
-          `<b>Start</b><br>${lt.start_time}`
-        );
+        const summary = buildTripSummary(lt);
 
+        originMarker.bindPopup(
+          `
+          <b>Trip summary</b><br>
+          ${summary.origin} → ${summary.destination}<br>
+          Distance: ${summary.distanceKm} km<br>
+          Time: ${summary.durationMin} min<br>
+          Segments: ${summary.segments}
+          `
+        );
         group._originMarker = originMarker;
 
       }
@@ -232,17 +239,6 @@ let currentViewBounds = null;
             permanent: false
           }
         );
-
-
-        line.on("mouseover", () => {
-          if (selectedTripId !== lt.linked_trip_id) return;
-          line.openTooltip();
-        });
-
-        line.on("mouseout", () => {
-          line.closeTooltip();
-        });
-
 
         line.on("click", (e) => {
           L.DomEvent.stopPropagation(e);
