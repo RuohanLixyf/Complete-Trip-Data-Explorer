@@ -277,11 +277,26 @@ let currentViewBounds = null;
       const count = useLinked ? d.linked_count : d.unlinked_count;
       if (!Number.isFinite(count) || count <= 0) return;
 
-      // ③ 防御：禁止零长度 OD
+      // OD 相同
       if (oLat === dLat && oLon === dLon) {
-        console.warn("❌ Skip OD (zero-length):", d);
+        const radius = 6 + 10 * (count / maxCount);
+
+        L.circleMarker([oLat, oLon], {
+          radius,
+          color: "#9333ea",          // 紫色：区别跨-tract OD
+          weight: 2,
+          fillColor: "#c084fc",
+          fillOpacity: 0.6,
+          dashArray: "4,2"           // 视觉上“非流向”
+        }).bindPopup(`
+          <b>Intra-tract trips</b><br>
+          Tract: ${d.origin_tract || ""}<br>
+          Trips: ${count}
+        `).addTo(layers.odFlow);
+
         return;
       }
+
 
       // ===== 曲率（用于“伪曲线”）=====
       const dx = dLon - oLon;
@@ -442,10 +457,13 @@ let currentViewBounds = null;
       return;
     }
 
-    // 2️⃣ O = D（这是逻辑错误，不是异常）
+    // 2️⃣ O = D（intra-tract trips：允许）
     if (o === d) {
-      setMapStatus("Origin and destination cannot be the same", "warn");
-      return;
+      setMapStatus(
+        "Intra-tract trips (origin and destination within the same census tract)",
+        "info"
+      );
+      // 不 return，继续加载 samples / stats
     }
 
     try {
