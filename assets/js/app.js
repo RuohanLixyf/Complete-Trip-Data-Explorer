@@ -121,8 +121,8 @@ let currentViewBounds = null;
       id: lt.linked_trip_id,
       origin: lt.origin?.tract || "Origin",
       destination: lt.destination?.tract || "Destination",
-      startTime: lt.start_time,
-      endTime: lt.end_time,
+      startTime: lt.origin?.start_time || "N/A",
+      endTime: lt.destination?.end_time || "N/A",
       segments: (lt.legs || []).length,
       distanceMile: totalDistance.toFixed(2),
       durationMin: totalDuration.toFixed(1)
@@ -137,6 +137,11 @@ let currentViewBounds = null;
     linkedTrips.forEach(lt => {
       const group = L.layerGroup().addTo(layers.tripRoute);
       linkedTripLayers.set(lt.linked_trip_id, group);
+
+      group.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        highlightLinkedTrip(lt.linked_trip_id);
+      });
 
       // 1) origin marker
       if (lt.origin && Number.isFinite(Number(lt.origin.lat)) && Number.isFinite(Number(lt.origin.lon))) {
@@ -160,7 +165,11 @@ let currentViewBounds = null;
           Total Segments: ${summary.segments} <br>
           Start Time: ${summary.startTime} <br>
           End Time: ${summary.endTime}
-          `
+          `,
+          {
+            sticky: false,
+            permanent: false
+          }
         );
         group._originMarker = originMarker;
 
@@ -179,7 +188,7 @@ let currentViewBounds = null;
         ).addTo(group);
 
         destMarker.bindPopup(
-          `<b>End</b><br>${lt.end_time}`
+          `<b>End</b><br>${lt.destination?.end_time}`
         );
 
         group._destMarker = destMarker;
@@ -241,10 +250,6 @@ let currentViewBounds = null;
           }
         );
 
-        line.on("click", (e) => {
-          L.DomEvent.stopPropagation(e);
-          highlightLinkedTrip(lt.linked_trip_id);
-        });
 
         if (!bounds) bounds = line.getBounds();
         else bounds.extend(line.getBounds());
