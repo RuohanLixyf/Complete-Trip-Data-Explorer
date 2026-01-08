@@ -823,7 +823,7 @@ select:focus{
     left: 8px;
     right: auto;
     bottom: 8px;
-    max-width: 180px;
+    max-width: 140px;
 
     min-width: unset;
     padding: 6px 8px;
