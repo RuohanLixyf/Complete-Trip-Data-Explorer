@@ -158,6 +158,8 @@ let currentViewBounds = null;
           Total Distance: ${summary.distanceMile} km<br>
           Total Time: ${summary.durationMin} min<br>
           Total Segments: ${summary.segments}
+          Start Time: ${summary.startTime}
+          End Time: ${summary.endTime}
           `
         );
         group._originMarker = originMarker;
