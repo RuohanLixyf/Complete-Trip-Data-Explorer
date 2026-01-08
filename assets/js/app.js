@@ -155,7 +155,7 @@ let currentViewBounds = null;
         originMarker.bindPopup(
           `
           <b>Trip summary</b><br>
-          Total Distance: ${summary.distanceMile} km<br>
+          Total Distance: ${summary.distanceMile} mile<br>
           Total Time: ${summary.durationMin} min<br>
           Total Segments: ${summary.segments} <br>
           Start Time: ${summary.startTime} <br>
