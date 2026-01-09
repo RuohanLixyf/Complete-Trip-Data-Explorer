@@ -134,6 +134,59 @@ let currentViewBounds = null;
     // YYYY-MM-DD → 取 DD
     return startTime.slice(8, 10); // "01" - "31"
   }
+  function extractAvailableDays(linkedTrips) {
+    const daySet = new Set();
+  
+    linkedTrips.forEach(lt => {
+      const startTime =
+        lt.start_time ||
+        lt.origin?.start_time ||
+        lt.startTime;
+  
+      if (!startTime || typeof startTime !== "string") return;
+  
+      const day = startTime.slice(8, 10); // "01"–"31"
+      if (/^\d{2}$/.test(day)) {
+        daySet.add(day);
+      }
+    });
+  
+    // 返回排序后的数组 ["03","07","12"]
+    return Array.from(daySet).sort((a, b) => Number(a) - Number(b));
+  }
+  function populateDaySelector(days) {
+    const daySelect = document.getElementById("daySelector");
+    if (!daySelect) return;
+  
+    const currentValue = daySelect.value || "all";
+  
+    // 清空
+    daySelect.innerHTML = "";
+  
+    // All 选项
+    const allOpt = document.createElement("option");
+    allOpt.value = "all";
+    allOpt.textContent = "All";
+    daySelect.appendChild(allOpt);
+  
+    // 动态 day
+    days.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = String(Number(d)); // "03" → "3"
+      opt.textContent = String(Number(d));
+      daySelect.appendChild(opt);
+    });
+  
+    // 尝试恢复之前的选择
+    if (
+      currentValue !== "all" &&
+      days.includes(currentValue.padStart(2, "0"))
+    ) {
+      daySelect.value = currentValue;
+    } else {
+      daySelect.value = "all";
+    }
+  }
 
   function drawSampleTrips(linkedTrips) {
     layers.tripRoute.clearLayers();
@@ -578,6 +631,9 @@ let currentViewBounds = null;
     try {
       const sampleJson = await loadSamplesByOD(o, d);
       const stats = await loadStatsForOD(o, d);
+      // ===== Populate Day selector based on data =====
+      const availableDays = extractAvailableDays(sampleJson.linked_trips);
+      populateDaySelector(availableDays);
       
       layers.odPolygon.clearLayers();
       layers.tripRoute.clearLayers();
