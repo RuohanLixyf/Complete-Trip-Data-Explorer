@@ -183,7 +183,7 @@ df["geometry"] = df.apply(build_geometry, axis=1)
 df = df[df["geometry"].notnull()]
 
 # =========================
-# BUILD SAMPLES (补 end_time)
+# BUILD SAMPLES（🔒 对齐 leg 时间语义）
 # =========================
 def build_route(geom):
     coords = [[lat, lon] for lon, lat in geom.coords if is_finite(lat) and is_finite(lon)]
@@ -213,8 +213,8 @@ for r in df.itertuples():
         "mode": str(r.travel_mode).lower().strip(),
         "route": route,
         "start_time": to_iso(start_dt),
-        "end_time": to_iso(end_dt),                     # ✅ CHANGED
-        "duration_min": duration,
+        "end_time": to_iso(end_dt),          # 🔒 ALIGN
+        "duration_min": duration,            # 🔒 ALIGN
         "network_distance_km": clean_num(r.network_distance),
         "route_distance_km": clean_num(r.route_distance),
         "origin": {
@@ -244,7 +244,7 @@ for r in df.itertuples():
     })
 
 # =========================
-# GROUP + BUILD LINKED TRIPS
+# GROUP + BUILD LINKED TRIPS（🔒 对齐 destination.end_time）
 # =========================
 groups = defaultdict(list)
 for s in samples:
@@ -265,7 +265,7 @@ for lid, trips in groups.items():
 
     destination = {
         **trips[-1]["destination"],
-        "end_time": trips[-1].get("end_time")          # ✅ CHANGED
+        "end_time": trips[-1]["end_time"]    # 🔒 ALIGN（不再 fallback）
     }
 
     transfers = [
@@ -292,7 +292,7 @@ for lid, trips in groups.items():
 linked_trips_full = sorted(linked_trips_full, key=lambda x: -x["weight"])
 
 # =========================
-# EXPORT (unchanged)
+# EXPORT（不变）
 # =========================
 for ORIG, DEST in OD_PAIRS:
     subset = [
