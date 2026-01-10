@@ -608,7 +608,7 @@ let currentViewBounds = null;
   async function applyODSelection() {
     const o = document.getElementById("originTract").value;
     const d = document.getElementById("destinationTract").value;
-    const dayValue = document.getElementById("daySelector")?.value || "all";
+    // const dayValue = document.getElementById("daySelector")?.value || "all";
 
     // 1️⃣ 未选全，不提示（安静）
     if (!o || !d) {
@@ -639,7 +639,9 @@ let currentViewBounds = null;
       // ===== Populate Day selector based on data =====
       const availableDays = extractAvailableDays(sampleJson.linked_trips);
       populateDaySelector(availableDays);
-      
+      // ✅ 关键：populate 后再读 daySelector，保证筛选值和 UI 同步
+      const dayValue = document.getElementById("daySelector")?.value || "all";
+
       layers.odPolygon.clearLayers();
       layers.tripRoute.clearLayers();
 
