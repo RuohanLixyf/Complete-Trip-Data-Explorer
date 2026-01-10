@@ -3,6 +3,7 @@
 # - OD-first filtering
 # - Geometry built only for needed trips
 # - JSON-safe (NO NaN / NO invalid values)
+# - OD geometry restored (OLD JSON compatible)
 # ============================================================
 
 # =========================
@@ -67,8 +68,6 @@ def is_finite(x):
     return x is not None and isinstance(x, (int, float)) and math.isfinite(x)
 
 def clean_num(x):
-    if x is None:
-        return None
     try:
         x = float(x)
         return x if math.isfinite(x) else None
@@ -110,18 +109,26 @@ df = pd.concat(dfs, ignore_index=True)
 df["local_datetime_start"] = pd.to_datetime(df["local_datetime_start"], errors="coerce")
 df["local_datetime_end"] = pd.to_datetime(df["local_datetime_end"], errors="coerce")
 df = df[df["local_datetime_end"] > df["local_datetime_start"]]
+
 df["duration_min"] = (
     df["local_datetime_end"] - df["local_datetime_start"]
 ).dt.total_seconds() / 60
+
 df = df.sort_values(["linked_trip_id", "local_datetime_start"])
 
 print("Raw linked trips:", df["linked_trip_id"].nunique())
 
 # =========================
-# TRACT JOIN
+# TRACT JOIN + GEOMETRY CACHE
 # =========================
 tracts = gpd.read_file(TRACT_SHP).to_crs("EPSG:4326")
 tracts["GEOID"] = tracts["GEOID"].astype(str)
+
+# 🔑 tract_id → geometry (JSON-safe)
+TRACT_GEOM = {
+    r.GEOID: r.geometry.__geo_interface__
+    for r in tracts.itertuples()
+}
 
 def gh_to_point(gh):
     lat, lon = pgh.decode(gh)
@@ -194,9 +201,7 @@ df = df[df["geometry"].notnull()]
 # =========================
 def build_route(geom):
     coords = [[lat, lon] for lon, lat in geom.coords if is_finite(lat) and is_finite(lon)]
-    if len(coords) < 2:
-        return None
-    return coords[::3] if len(coords) > 400 else coords
+    return coords[::3] if len(coords) >= 2 else None
 
 samples = []
 for r in df.itertuples():
@@ -212,9 +217,7 @@ for r in df.itertuples():
         "mode": str(r.travel_mode).lower().strip(),
         "route": route,
         "start_time": r.local_datetime_start.isoformat(),
-        "end_time": (
-            r.local_datetime_start + timedelta(minutes=r.duration_min)
-        ).isoformat(),
+        "end_time": (r.local_datetime_start + timedelta(minutes=r.duration_min)).isoformat(),
         "origin": {
             "lon": clean_coord(o_lon),
             "lat": clean_coord(o_lat),
@@ -273,7 +276,7 @@ def filter_linked_trips(trips, max_dist):
     return out
 
 # =========================
-# EXPORT
+# EXPORT (OD geometry restored)
 # =========================
 for ORIG, DEST in OD_PAIRS:
     subset = [
@@ -286,8 +289,14 @@ for ORIG, DEST in OD_PAIRS:
         "schema": "nova.complete_trip.sample.v2",
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "od": {
-            "origin": {"tract_id": ORIG},
-            "destination": {"tract_id": DEST}
+            "origin": {
+                "tract_id": ORIG,
+                "geometry": TRACT_GEOM.get(ORIG)
+            },
+            "destination": {
+                "tract_id": DEST,
+                "geometry": TRACT_GEOM.get(DEST)
+            }
         },
         "count": len(subset),
         "linked_trips": subset
