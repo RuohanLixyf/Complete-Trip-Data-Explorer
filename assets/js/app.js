@@ -909,7 +909,7 @@ let currentViewBounds = null;
     // 4️⃣ Mode involvement
     const m = stats.mode_involvement;
     document.getElementById("statsModes").textContent =
-      `Mode share: `
+      `Trips containing each mode: `
       + `Car ${(m.car * 100).toFixed(1)}%, `
       + `Rail ${(m.rail * 100).toFixed(1)}%, `
       + `Bus ${(m.bus * 100).toFixed(1)}%, `

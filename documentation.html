@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Documentation, data dictionary preview, and example notebook for the Salt Lake City Complete Trip Data.">
+  <title>Documentation | Salt Lake City Complete Trip Data</title>
+  <link rel="icon" href="img/Villanova_V_logo.jpg" type="image/jpeg">
+  <link rel="stylesheet" href="assets/css/portal.css">
+</head>
+<body class="portal-page">
+  <header class="portal-header"><div><div class="portal-brandline"><span class="portal-wordmark"><span class="nova">Nova</span><span class="mobility">Mobility</span> Lab</span><span class="portal-separator">|</span><span class="portal-project-name">Salt Lake City Complete Trip Data</span></div><div class="portal-subtitle">Public Data Portal · Salt Lake City Metropolitan Area</div></div><img class="portal-logo" src="img/Villanova_V_logo.jpg" alt="Villanova University"></header>
+  <nav class="portal-nav" aria-label="Primary navigation"><div class="portal-nav-inner"><a href="index.html">Overview</a><a href="explorer.html">Data Explorer</a><a href="data-access.html">Download &amp; Access</a><a href="documentation.html" aria-current="page">Documentation</a><a href="paper.html">Paper &amp; Citation</a></div></nav>
+  <main class="portal-main">
+    <header class="page-intro"><div class="portal-container"><p class="portal-eyebrow">Public-sample guide</p><h1>Documentation</h1><p>Use the sample safely, inspect its verified structure, and move from file discovery to reproducible analysis.</p><nav class="anchor-nav" aria-label="On this page"><a href="#getting-started">Getting Started</a><a href="#file-structure">File Structure</a><a href="#data-dictionary">Data Dictionary</a><a href="#notebook">Example Notebook</a><a href="#processing">Processing Overview</a><a href="#limitations">Known Limitations</a><a href="#faq">FAQ</a></nav></div></header>
+
+    <section class="portal-section" id="getting-started"><div class="portal-container"><p class="portal-eyebrow">Getting started</p><h2>Five-step quick start</h2><div class="workflow"><div class="workflow-step">Download the public sample</div><div class="workflow-step">Review the data dictionary</div><div class="workflow-step">Open the example notebook</div><div class="workflow-step">Inspect trip and segment records</div><div class="workflow-step">Cite the dataset and paper</div></div></div></section>
+
+    <section class="portal-section soft" id="file-structure"><div class="portal-container"><p class="portal-eyebrow">Verified package</p><h2>File Structure</h2><p class="section-lead">The current public sample archive contains the following files.</p><pre class="code-block light">complete_trip_saltlake_2020_1day_Sample_v1.0/
+├── data/
+│   └── part-001-of-001.parquet
+├── data_dictionary.csv
+└── Getting_Started.ipynb</pre><div class="portal-note"><strong>Companion network package.</strong> <code>network.zip</code> is provided separately and contains auto, transit, and walk/bike node and link tables used to resolve <code>route_taken</code> node IDs.</div><div class="button-row"><a class="portal-button secondary" data-portal-link="networkDownload">Download Network Files</a></div></div></section>
+
+    <section class="portal-section" id="data-dictionary"><div class="portal-container"><p class="portal-eyebrow">Verified fields</p><h2>Data Dictionary</h2><p class="section-lead">The release includes a field-level dictionary. This compact preview uses descriptions verified from that file.</p><div class="table-wrap"><table class="portal-table"><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody>
+      <tr><td><code>linked_trip_id</code></td><td>string</td><td>Identifier for a reconstructed linked journey containing one or more trip segments.</td></tr><tr><td><code>trip_id</code></td><td>string</td><td>Identifier for a reconstructed single-mode trip segment.</td></tr><tr><td><code>segment_order</code></td><td>integer</td><td>Sequential position of a segment within a linked journey.</td></tr><tr><td><code>travel_mode</code></td><td>string</td><td>Inferred segment-level mode: car, walk/bike, bus, or rail.</td></tr><tr><td><code>trip_duration</code></td><td>float</td><td>Reconstructed segment duration in minutes.</td></tr><tr><td><code>network_distance</code></td><td>float</td><td>Reconstructed network distance in miles.</td></tr><tr><td><code>trip_weight</code></td><td>float</td><td>Population expansion weight for eligible records.</td></tr>
+    </tbody></table></div><div class="button-row"><a class="portal-button secondary" data-portal-link="dataDictionary">Download the complete dictionary</a></div></div></section>
+
+    <section class="portal-section soft" id="notebook"><div class="portal-container"><p class="portal-eyebrow">Hands-on analysis</p><h2>Example Analysis Notebook</h2><p class="section-lead">The example notebook demonstrates how to locate and load the public sample, inspect complete trips and travel segments, run quality checks, summarize travel modes, link related records, and use the companion network tables to visualize a selected route without exposing unnecessary identifiers.</p><div class="button-row"><a class="portal-button" data-portal-link="notebookGithub">View Notebook on GitHub</a><a class="portal-button secondary" data-portal-link="notebookDownload">Download .ipynb</a><a class="portal-button secondary" data-portal-link="networkDownload">Download Network Files</a><a class="portal-button secondary" data-portal-link="notebookRenderedHtml">View Static Preview</a><a class="portal-button secondary" data-portal-link="jupyterLite">Run in Browser</a></div><div class="portal-note">Place <code>network.zip</code> beside the extracted release directory to enable route visualization. Browser execution will use JupyterLite when configured and is intended for a smaller tutorial subset, not large-scale processing.</div>
+      <div class="card-grid two" style="margin-top:30px"><div><h3>Discover and load release files</h3><pre class="code-block">from pathlib import Path
+import pandas as pd
+
+data_dir = Path("data")
+csv_files = list(data_dir.glob("*.csv"))
+parquet_files = list(data_dir.glob("*.parquet"))
+
+def load_table(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() == ".csv":
+        return pd.read_csv(path)
+    if path.suffix.lower() == ".parquet":
+        return pd.read_parquet(path)
+    raise ValueError(f"Unsupported: {path.suffix}")</pre></div><div><h3>Inspect safely</h3><pre class="code-block">files = csv_files or parquet_files
+if not files:
+    raise FileNotFoundError(
+        "Download and extract the public sample first."
+    )
+
+table = load_table(files[0])
+print(table.shape)
+print(table.columns.tolist())
+table.head()</pre></div><div><h3>Review missing values</h3><pre class="code-block">missing_summary = (
+    table.isna()
+    .sum()
+    .sort_values(ascending=False)
+    .rename("missing_values")
+)
+missing_summary.head(20)</pre></div><div><h3>Discover likely identifiers</h3><pre class="code-block">candidate_trip_id_columns = [
+    c for c in table.columns
+    if "trip" in c.lower() and "id" in c.lower()
+]
+
+candidate_coordinate_columns = [
+    c for c in table.columns
+    if any(term in c.lower() for term in
+           ["lat", "lon", "lng", "latitude", "longitude"])
+]</pre></div></div>
+    </div></section>
+
+    <section class="portal-section" id="processing"><div class="portal-container"><p class="portal-eyebrow">Data processing overview</p><h2>Six broad stages</h2><div class="workflow"><div class="workflow-step">Mobility observations</div><div class="workflow-step">Quality control</div><div class="workflow-step">Trip segmentation</div><div class="workflow-step">Mode inference</div><div class="workflow-step">Complete-trip linkage</div><div class="workflow-step">Privacy-aware release</div></div></div></section>
+
+    <section class="portal-section soft" id="limitations"><div class="portal-container"><p class="portal-eyebrow">Interpretation</p><h2>Known Limitations</h2><ul class="clean-list"><li>The public sample covers one undisclosed day and may not represent all seasonal or long-term travel patterns.</li><li>Spatial and temporal information may be aggregated or generalized for privacy.</li><li>Travel modes are inferred and may contain classification uncertainty.</li><li>Device-based mobility observations may not represent the full population.</li><li>Some complete trips may contain multiple travel modes.</li><li>The public sample is intended for evaluation and reproducibility support, not as a replacement for the controlled full dataset.</li></ul></div></section>
+
+    <section class="portal-section" id="faq"><div class="portal-container"><p class="portal-eyebrow">Common questions</p><h2>FAQ</h2><div class="faq-list">
+      <details><summary>Why is the exact sample date not disclosed?</summary><p>The date and month are withheld and temporal fields are generalized to reduce disclosure risk while preserving research utility.</p></details>
+      <details><summary>Is the full dataset publicly downloadable?</summary><p>No. Full-dataset access is controlled, reviewed, and may require a Data Use Agreement.</p></details>
+      <details><summary>Can the public sample be used in a publication?</summary><p>It is intended to support research evaluation and reproducibility. Check the final release license when configured and cite the dataset and paper.</p></details>
+      <details><summary>Why can mode percentages exceed 100% in the explorer?</summary><p>The explorer reports percentages of trips containing each mode. A complete trip may contain multiple modes, so those percentages do not necessarily sum to 100%.</p></details>
+      <details><summary>Does the notebook run directly in the browser?</summary><p>The notebook can be viewed or downloaded immediately. Browser-based execution will be available through JupyterLite when configured. JupyterLite runs Python in the browser and is intended for the smaller tutorial subset, not large-scale processing.</p></details>
+      <details><summary>How should the dataset be cited?</summary><p>Use the current BibTeX on the <a href="paper.html">Paper &amp; Citation page</a> and check for updates if a journal DOI becomes available.</p></details>
+      <details><summary>Who should I contact with access questions?</summary><p><a data-portal-link="contactEmail">Contact the research team</a>. The project email will appear here when configured.</p></details>
+    </div></div></section>
+  </main>
+  <footer class="portal-footer"><div class="portal-container footer-inner"><div><strong>NovaMobility Lab</strong>Department of Civil and Environmental Engineering<br>Villanova University</div><div class="footer-links"><a href="explorer.html">Data Explorer</a><a href="documentation.html">Documentation</a><a href="paper.html">Paper &amp; Citation</a><span class="footer-use">For research and educational use.</span></div></div></footer>
+  <script src="assets/js/portal-config.js"></script><script src="assets/js/portal.js"></script>
+</body></html>

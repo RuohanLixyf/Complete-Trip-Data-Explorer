@@ -4,45 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Complete Trip Data Explorer</title>
+  <link rel="icon" href="img/Villanova_V_logo.jpg" type="image/jpeg" />
 
   <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/portal.css" />
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 </head>
 
-<body>
+<body class="portal-page explorer-portal">
   <!-- ===== App Shell ===== -->
   <div id="app-shell">
 
-    <!-- ===== Top Bar ===== -->
-    <header class="top-bar">
-      <div class="left-group">
-        <!-- ✅ 新增：Mobile menu toggle -->
-        <button id="menuToggle" class="menu-toggle">☰</button>
-        <div class="lab-wordmark">
-          <span class="brand">
-            <span class="nova">Nova</span><span class="mobility">Mobility</span> Lab
-          </span>
-          <span class="sep">|</span>
-          <div class="title-block">
-            <span class="page-title">Salt Lake City Complete Trip Data</span>
-            <span class="page-subtitle">
-              (Demo Version · Salt Lake City Metropolitan Area)
-            </span>
-          </div>
+    <header class="portal-header">
+      <div>
+        <div class="portal-brandline">
+          <span class="portal-wordmark"><span class="nova">Nova</span><span class="mobility">Mobility</span> Lab</span>
+          <span class="portal-separator">|</span>
+          <span class="portal-project-name">Salt Lake City Complete Trip Data</span>
         </div>
+        <div class="portal-subtitle">Public Data Portal · Salt Lake City Metropolitan Area</div>
       </div>
-
-      <div class="right-group">
-        <img
-          src="img/Villanova_V_logo.jpg"
-          alt="Villanova University"
-          class="villanova-logo"
-        />
-      </div>
+      <img class="portal-logo" src="img/Villanova_V_logo.jpg" alt="Villanova University">
     </header>
+
+    <nav class="portal-nav" aria-label="Primary navigation">
+      <div class="portal-nav-inner">
+        <a href="index.html">Overview</a>
+        <a href="explorer.html" aria-current="page">Data Explorer</a>
+        <a href="data-access.html">Download &amp; Access</a>
+        <a href="documentation.html">Documentation</a>
+        <a href="paper.html">Paper &amp; Citation</a>
+      </div>
+    </nav>
     
     <!-- ===== Mobile OD Bar ===== -->
     <div class="mobile-od-bar">
@@ -108,7 +104,7 @@
           </div>
           
           <div class="form-row">
-            <label>Day (Jan.)</label>
+            <label>Sample Day</label>
             <select id="daySelector">
               <option value="1">1</option>
               <option value="2">2</option>
@@ -199,12 +195,15 @@
         <div id="map"></div>
 
         <div id="statsPanel" class="stats-panel">
-          <div class="stats-title">OD Trip Summary (Jan.2020)</div>
+          <div class="stats-title">OD Trip Summary</div>
 
           <div class="stats-row" id="statsTrips"></div>
           <div class="stats-row" id="statsDuration"></div>
           <div class="stats-row" id="statsSegments"></div>
           <div class="stats-row" id="statsModes"></div>
+          <div class="stats-definition" title="A trip may contain multiple modes; percentages therefore do not necessarily sum to 100%.">
+            A trip may contain multiple modes; percentages therefore do not necessarily sum to 100%.
+          </div>
 
           <div class="stats-row">
             <canvas id="travelTimeChart" width="220" height="120"></canvas>
@@ -268,9 +267,17 @@
       </main>
 
     </div>
+    <footer class="portal-footer explorer-footer">
+      <div class="explorer-footer-inner">
+        <span><strong>NovaMobility Lab</strong> · Department of Civil and Environmental Engineering · Villanova University</span>
+        <span><a href="documentation.html">Documentation</a> · <a href="paper.html">Paper &amp; Citation</a> · For research and educational use.</span>
+      </div>
+    </footer>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="assets/js/portal-config.js"></script>
+  <script src="assets/js/portal.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>
