@@ -152,6 +152,8 @@ button:focus-visible {
   letter-spacing: -.035em;
 }
 
+.portal-hero h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+
 .portal-hero p.hero-copy {
   max-width: 760px;
   margin: 22px 0 0;
@@ -323,7 +325,8 @@ body.explorer-portal .mobile-od-bar { flex-shrink: 0; }
   .portal-container { width: min(100% - 28px, 1180px); }
   .card-grid, .card-grid.five, .workflow, .workflow.four { grid-template-columns: 1fr; }
   .workflow-step::after { display: none; }
-  .portal-hero h1, .page-intro h1 { font-size: 2.1rem; }
+  .portal-hero h1 { font-size: 1.9rem; }
+  .page-intro h1 { font-size: 2.1rem; }
   .button-row { flex-direction: column; align-items: stretch; }
   .portal-button { width: 100%; }
   .paper-meta { grid-template-columns: 1fr; gap: 2px; }
