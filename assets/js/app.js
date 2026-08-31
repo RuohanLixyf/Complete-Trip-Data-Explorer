@@ -45,8 +45,8 @@ let currentViewBounds = null;
   function formatPrivateTripTime(value) {
     if (!value || typeof value !== "string") return "N/A";
 
-    // Parse the components directly so the displayed weekday/slot is not
-    // shifted by the browser's timezone. Each day contains 48 half-hour slots.
+    // Parse the components directly so the displayed weekday/block is not
+    // shifted by the browser's timezone. Half-hour blocks are indexed 0–47.
     const match = value.match(
       /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/
     );
@@ -74,8 +74,8 @@ let currentViewBounds = null;
       date.getUTCDate() !== day
     ) return "N/A";
 
-    const slot = hour * 2 + Math.floor(minute / 30) + 1;
-    return `${year} ${months[month - 1]} ${weekdays[date.getUTCDay()]}, Slot ${slot}`;
+    const block = hour * 2 + Math.floor(minute / 30);
+    return `${year} ${months[month - 1]} ${weekdays[date.getUTCDay()]}, Block ${block}`;
   }
 
   /* =========================
