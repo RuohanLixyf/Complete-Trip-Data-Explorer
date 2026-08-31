@@ -42,6 +42,42 @@ let currentViewBounds = null;
     return Number.isFinite(x) ? x.toFixed(digits) : fallback;
   }
 
+  function formatPrivateTripTime(value) {
+    if (!value || typeof value !== "string") return "N/A";
+
+    // Parse the components directly so the displayed weekday/slot is not
+    // shifted by the browser's timezone. Each day contains 48 half-hour slots.
+    const match = value.match(
+      /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/
+    );
+    if (!match) return "N/A";
+
+    const [, year, monthText, dayText, hourText, minuteText] = match;
+    const month = Number(monthText);
+    const day = Number(dayText);
+    const hour = Number(hourText);
+    const minute = Number(minuteText);
+    if (
+      month < 1 || month > 12 || day < 1 || day > 31 ||
+      hour < 0 || hour > 23 || minute < 0 || minute > 59
+    ) return "N/A";
+
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const date = new Date(Date.UTC(Number(year), month - 1, day));
+    if (
+      date.getUTCFullYear() !== Number(year) ||
+      date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day
+    ) return "N/A";
+
+    const slot = hour * 2 + Math.floor(minute / 30) + 1;
+    return `${year} ${months[month - 1]} ${weekdays[date.getUTCDay()]}, Slot ${slot}`;
+  }
+
   /* =========================
      Mode helpers
   ========================= */
@@ -125,8 +161,8 @@ let currentViewBounds = null;
       id: lt.linked_trip_id,
       origin: lt.origin?.tract || "Origin",
       destination: lt.destination?.tract || "Destination",
-      startTime: lt.origin?.start_time || "N/A",
-      endTime: lt.destination?.end_time || "N/A",
+      startTime: formatPrivateTripTime(lt.origin?.start_time),
+      endTime: formatPrivateTripTime(lt.destination?.end_time),
       segments: (lt.legs || []).length,
       distanceMile: totalDistance.toFixed(2),
       durationMin: totalDuration.toFixed(1)
@@ -247,7 +283,7 @@ let currentViewBounds = null;
         ).addTo(group);
 
         destMarker.bindPopup(
-          `<b>End</b><br>${lt.destination?.end_time}`
+          `<b>End</b><br>${formatPrivateTripTime(lt.destination?.end_time)}`
         );
 
         group._destMarker = destMarker;
