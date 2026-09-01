@@ -20,7 +20,7 @@ window.PORTAL_CONFIG = {
   },
   release: {
     version: "v1.0",
-    license: "To be confirmed",
-    lastUpdated: "To be configured"
+    license: "MIT License",
+    lastUpdated: "9/1/2026"
   }
 };
